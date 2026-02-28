@@ -26,6 +26,24 @@ app.get("/", (req, res) => {
   res.render("login"); 
 });
 
+app.get('/user', function (req, res) {
+  // let {email, password} = req.query;
+  // const query = `SELECT role FROM User WHERE email = ? AND password = ?;`;
+  // db.run(query, [email, password], (err, rows) => {
+  //   if (err) {
+  //     console.log("email หรือ password ไม่ถูกต้อง");
+  //   }
+  //   res.redirect('login');
+  // });
+
+  // const qryTable = ``;
+  // db.all(query, [email, password], (err, rows) => {
+  //   res.render('user', {info : rows});
+  // });
+
+  res.render('userT'); //use for test userInfo_page ONLY!!
+});
+
 app.listen(port, () => {
   console.log(`Starting server at port ${port}`);
 });
