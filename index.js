@@ -39,6 +39,11 @@ app.get("/admin", (req, res) => {
   res.render("adInfo"); 
 });
 
+app.get("/admin/manAc", (req, res) => {
+  // you must write code for retrieve from database
+  res.render("adMan"); 
+});
+
 app.listen(port, () => {
   console.log(`Starting server at port ${port}`);
 });

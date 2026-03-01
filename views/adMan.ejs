@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Account</title>
+    <style>
+        .cont {
+            background-color: rgba(208, 208, 208, 0.451);
+            width:70%;
+            padding:1% 5%;
+            margin:3% auto;
+        }
+
+        table {
+            width: 90%;
+            text-align: left;
+            margin: auto;
+        }
+
+    </style>
+</head>
+<body>
+    <%- include("partials/mtbar") %>
+    <a href="/admin/manAc/student">นักเรียน</a>
+    <a href="/admin/manAc/teacher">อาจารย์</a>
+    <div class="cont">
+        <h2>Account()</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>ชื่อ นามสกุล</th>
+                    <th>รหัสประจำตัว</th>
+                    <th>อีเมล</th>
+                    <th>เบอร์โทร</th>
+                    <th>ห้อง</th>
+                    <th style="text-align: center;"><a href="/admin/manAc/add">เพิ่มบัญชี</a></th>
+                </tr>
+            </thead>
+            <tbody><!-- must add data rater -->
+                <tr>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><a href="/admin/manAc/edit/">เปลี่ยนแปลงบัญชี</a> <a href="/admin/manAc/del/">ลบบัญชี</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
