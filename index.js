@@ -31,7 +31,12 @@ app.use(express.urlencoded({ extended: true }))
 // });
 
 app.get("/", (req, res) => {
-  res.render("table"); 
+  res.render("login"); 
+});
+
+app.get("/admin", (req, res) => {
+  // you must write code for retrieve from database
+  res.render("adInfo"); 
 });
 
 app.listen(port, () => {
