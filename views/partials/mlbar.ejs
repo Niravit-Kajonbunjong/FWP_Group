@@ -1,0 +1,66 @@
+<style>
+body {
+    font-family: 'Prompt', sans-serif;
+}
+
+.sidebar-container {
+    width: 280px;
+    height: 100vh;
+    background-color: #F4F7FC;
+    border-right: 1px solid #E0E0E0;
+    position: fixed;
+}
+
+.menu-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item {
+    padding: 18px 25px;
+    text-decoration: none;
+    color: #1A1A1A;
+    font-weight: 600;
+    font-size: 1.05rem;
+    border-bottom: 1px solid #E8EBF2;
+    transition: all 0.2s ease;
+    display: block;
+}
+
+.menu-item:hover {
+    background-color: #E9EFFF;
+    color: #0D6EFD;
+    padding-left: 30px;
+}
+
+.menu-item:last-child {
+    border-bottom: none;
+}
+</style>
+<div class="sidebar-container">
+    <div class="sidebar-header">
+        </div>
+    
+    <div class="menu-list">
+        
+            <a href="/teacher/schedule" class="menu-item">ตารางสอน</a>
+            <a href="/teacher/grading" class="menu-item">กรอกคะแนน</a>
+
+
+        <% if (user.role === 'student') { %>
+            <a href="/student/grades" class="menu-item">ผลการเรียน</a>
+            <a href="/student/timetable" class="menu-item">ตารางเรียน</a>
+            <a href="/student/enroll" class="menu-item">ลงทะเบียนเรียน</a>
+        <% } %>
+
+        <% if (user.role === 'registration') { %>
+            <a href="/regis/users" class="menu-item">ข้อมูลนักเรียน/อาจารย์</a>
+            <a href="/regis/enrollment" class="menu-item">การลงทะเบียน</a>
+            <a href="/regis/curriculum" class="menu-item">วิชาและหลักสูตร</a>
+        <% } %>
+
+        <% if (user.role === 'admin') { %>
+            <a href="/admin/accounts" class="menu-item">จัดการบัญชี</a>
+        <% } %>
+    </div>
+</div>

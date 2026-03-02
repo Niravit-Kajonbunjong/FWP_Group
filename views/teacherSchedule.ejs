@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตารางสอน - ระบบจัดการการศึกษา</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Prompt', sans-serif;
+            background-color: #f4f5f8;
+            overflow: hidden; 
+        }
+        .app-container { display: flex; flex-direction: column; height: 100vh; }
+        .bottom-wrapper { display: flex; flex: 1; overflow: hidden; }
+        .sidebar-wrapper { width: 280px; flex-shrink: 0; background-color: #F4F7FE; border-right: 1px solid #E0E0E0; overflow-y: auto; }
+        .main-content { flex-grow: 1; display: flex; flex-direction: column; padding: 40px; overflow-y: auto; }
+        
+        /* สไตล์กล่องเนื้อหา */
+        .content-container {
+            width: 100%;
+            background-color: #ffffff;
+            border-radius: 12px;
+            padding: 40px;
+        }
+
+        /* ตกแต่งหัวตารางสีชมพูตามสไตล์ของคุณ */
+        .table-pink-header thead th {
+            background-color: #ffaeee;
+            color: #1A1A1A;
+            border-bottom: none;
+            padding: 15px;
+        }
+        .table td { vertical-align: middle; padding: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <%- include('partials/mtbar') %>
+
+        <div class="bottom-wrapper">
+            
+            <div class="sidebar-wrapper">
+                <%- include('partials/mlbar') %>
+            </div>
+
+            <main class="main-content">
+                <div class="content-container shadow-sm">
+                    
+                    <h3 class="fw-bold mb-4">ตารางสอน</h3>
+                    
+                    <% if (schedules && schedules.length > 0) { %>
+                        <h6 class="text-secondary mb-3">ภาคการศึกษาที่ <%= schedules[0].term %>/<%= schedules[0].year %></h6>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered table-pink-header mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="text-center" width="15%">วัน</th>
+                                        <th class="text-center" width="20%">เวลา</th>
+                                        <th width="15%">รหัสวิชา</th>
+                                        <th width="35%">ชื่อวิชา</th>
+                                        <th class="text-center" width="15%">ห้องเรียน</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% 
+                                        const dayThai = {
+                                            'Monday': 'จันทร์',
+                                            'Tuesday': 'อังคาร',
+                                            'Wednesday': 'พุธ',
+                                            'Thursday': 'พฤหัสบดี',
+                                            'Friday': 'ศุกร์',
+                                            'Saturday': 'เสาร์',
+                                            'Sunday': 'อาทิตย์'
+                                        };
+                                    %>
+                                    <% schedules.forEach(function(s) { %>
+                                        <tr>
+                                            <td class="text-center fw-bold"><%= dayThai[s.schedule_day] || s.schedule_day %></td>
+                                            <td class="text-center"><%= s.start_time %> - <%= s.end_time %></td>
+                                            <td><%= s.course_code %></td>
+                                            <td><%= s.course_name %> <br> <small class="text-secondary">(<%= s.credit_hours %> หน่วยกิต)</small></td>
+                                            <td class="text-center"><%= s.room %></td>
+                                        </tr>
+                                    <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                    <% } else { %>
+                        <div class="alert alert-warning text-center">
+                            ยังไม่มีตารางสอนในระบบ
+                        </div>
+                    <% } %>
+
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+</body>
+</html>
