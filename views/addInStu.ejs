@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Student Information</title>
+    <style>
+        .info {
+            display: grid;
+            grid-template-columns: 45% 45%;
+            gap: 1%;
+            margin: 5%;
+        }
+    </style>
+</head>
+
+<body>
+    <%- include("partials/mtbar") %>
+        <div class="info">
+            <div>
+                <img src="/public/img/bgpink.svg">
+            </div>
+            <div>
+                <form action="/admin/manAc/save" method="get">
+                    <label for="sir">ชื่อ</label><br>
+                    <input type="text" name="sir" id="sir">
+                    <label for="last">นามสกุล</label><br>
+                    <input type="text" name="last" id="last">
+                    <label for="gender">เพศ</label><br>
+                    <input type="text" name="gender" id="gender">
+                    <label for="DOB">วัน - เดือน - ปี เกิด</label><br>
+                    <input type="text" name="DOB" id="DOB">
+                    <label for="tel">เบอร์โทรศัพท์</label><br>
+                    <input type="tel" name="tel" id="tel">
+                    <label for="ID">รหัสประจำตัว</label><br>
+                    <input type="text" name="ID" id="ID">
+                    <label for="email">อีเมล</label><br>
+                    <input type="email" name="email" id="email">
+                    <label for="password">รหัสอีเมล</label><br>
+                    <input type="password" name="password" id="password">
+                    <label for="room">ห้อง</label><br>
+                    <input type="text" name="room" id="room">
+
+                    <br>
+                    <input type="submit" value="ยืนยันการเพิ่มข้อมูล">
+                </form>
+            </div>
+        </div>
+</body>
+
+</html>

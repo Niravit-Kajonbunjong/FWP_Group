@@ -44,6 +44,34 @@ app.get("/admin/manAc", (req, res) => {
   res.render("adMan"); 
 });
 
+app.get("/admin/manAc/student", (req, res) => {
+  // you must write code for retrieve from database
+  res.render("adManStu"); 
+});
+
+app.get("/admin/manAc/teacher", (req, res) => {
+  // you must write code for retrieve from database
+  res.render("adManTea"); 
+});
+
+app.get("/admin/manAc/addStu", (req, res) => {
+  res.render("addInStu"); 
+});
+
+app.get("/admin/manAc/addTea", (req, res) => {
+  res.render("addInTea"); 
+});
+
+app.get("/admin/manAc/edit/", (req, res) => {
+  // you must write code for retrieve from database
+  res.render("editInStu"); // test edit student inforamtion only. change it later
+});
+
+// app.get("/admin/manAc/del/:id", (req, res) => {
+//   // you must write code for retrieve from database
+//   res.render("adManTea"); // test delete student inforamtion only. change it later
+// });
+
 app.listen(port, () => {
   console.log(`Starting server at port ${port}`);
 });
