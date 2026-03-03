@@ -30,9 +30,9 @@ app.use(express.urlencoded({ extended: true }))
 //   res.render("teacherHome"); 
 // });
 
-// app.get("/", (req, res) => {
-//   res.render("table"); 
-// });
+app.get("/", (req, res) => {
+  res.render("temp"); 
+});
 
 // app.get("/", (req, res) => {
 //   res.render("partials/mlbar"); 
