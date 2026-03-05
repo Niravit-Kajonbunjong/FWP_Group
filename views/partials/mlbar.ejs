@@ -42,10 +42,10 @@ body {
         </div>
     
     <div class="menu-list">
-        
+        <% if (user.role === 'teacher') { %>
             <a href="/teacher/schedule" class="menu-item">ตารางสอน</a>
             <a href="/teacher/grading" class="menu-item">กรอกคะแนน</a>
-
+        <% } %>
 
         <% if (user.role === 'student') { %>
             <a href="/student/grades" class="menu-item">ผลการเรียน</a>

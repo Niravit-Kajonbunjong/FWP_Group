@@ -86,7 +86,7 @@
 
         .time-row {
             display: flex;
-            height: 30px;
+            height: 35px;
             flex-shrink: 0;
             background-color: #fafbfc;
             border-bottom: 1px solid #dee2e6;
@@ -124,22 +124,30 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.65rem;
+            font-size: 0.7rem; /* ปรับฟอนต์นิดนึง */
             color: #adb5bd;
+            font-weight: 500;
         }
         .time-slot:last-child { border-right: none; }
 
         .course-block {
             position: absolute;
-            top: 2px; 
-            bottom: 2px;
+            top: 3px; 
+            bottom: 3px;
             border-radius: 4px;
-            padding: 4px 6px;
+            padding: 5px 8px;
             color: #333333; 
             display: flex;
             flex-direction: column;
             overflow: hidden;
             border: 1px solid rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .course-block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 20;
         }
 
         .course-code {
@@ -152,8 +160,8 @@
 
         .course-name {
             font-weight: 500;
-            font-size: 0.65rem;
-            line-height: 1.1;
+            font-size: 0.7rem;
+            line-height: 1.2;
             white-space: nowrap; 
             overflow: hidden;
             text-overflow: ellipsis; 
@@ -163,9 +171,9 @@
         .course-footer {
             display: flex;
             justify-content: space-between;
-            font-size: 0.6rem;
+            font-size: 0.65rem;
             opacity: 0.85;
-            font-weight: 500;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -197,9 +205,9 @@
                         <div class="time-row">
                             <div class="col-day"></div>
                             <div class="col-times">
-                                <% for(let i = 8; i < 20; i++) { %>
+                                <% for(let i = 9; i < 17; i++) { %>
                                     <div class="time-slot">
-                                        <%= (i < 10 ? '0' : '') + i %>:00
+                                        <%= (i < 10 ? '0' : '') + i %>:00 - <%= (i+1 < 10 ? '0' : '') + (i+1) %>:00
                                     </div>
                                 <% } %>
                             </div>
@@ -209,24 +217,22 @@
                             const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
                             const dayLabels = { 'Monday':'Mon', 'Tuesday':'Tue', 'Wednesday':'Wed', 'Thursday':'Thu', 'Friday':'Fri', 'Saturday':'Sat', 'Sunday':'Sun' };
                             
-                            // -------------------------------------------
-                            // เปลี่ยนชุดสีเป็นโทนพาสเทล 7 สี
-                            // -------------------------------------------
                             const bgColors = [
-                                '#FFB3BA', // ชมพูพาสเทล
-                                '#FFDFBA', // ส้มพาสเทล
-                                '#FFFFBA', // เหลืองพาสเทล
-                                '#BAFFC9', // เขียวพาสเทล
-                                '#BAE1FF', // ฟ้าพาสเทล
-                                '#D0BFFF', // ม่วงพาสเทล
-                                '#E2F0CB'  // เขียวอมเหลืองพาสเทล
+                                '#FFB3BA',
+                                '#FFDFBA',
+                                '#FFFFBA',
+                                '#BAFFC9',
+                                '#BAE1FF',
+                                '#D0BFFF',
+                                '#E2F0CB'
                             ];
+
 
                             const getPos = (timeStr) => {
                                 if(!timeStr) return 0;
                                 const parts = timeStr.split(':');
-                                const mins = ((parseInt(parts[0]) - 8) * 60) + parseInt(parts[1]);
-                                return (mins / 720) * 100;
+                                const mins = ((parseInt(parts[0]) - 9) * 60) + parseInt(parts[1]);
+                                return (mins / 480) * 100;
                             };
                         %>
 
@@ -237,7 +243,7 @@
                                 <div class="col-day"><%= dayLabels[day] %></div>
                                 <div class="col-times">
                                     
-                                    <% for(let i = 0; i < 12; i++) { %>
+                                    <% for(let i = 0; i < 8; i++) { %>
                                         <div class="time-slot"></div>
                                     <% } %>
 
