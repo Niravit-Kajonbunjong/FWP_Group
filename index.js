@@ -190,11 +190,11 @@ app.get("/teacher/grading",teacher_auth, (req, res) => {
             if (err || !teacher) return res.status(500).send("ไม่พบข้อมูลอาจารย์");
 
             const sqlCourses = `
-                SELECT 
-                    cs.section_id, 
-                    cs.room, 
-                    c.course_code, 
-                    c.course_name 
+                SELECT
+                    cs.section_id,
+                    cs.room,
+                    c.course_code,
+                    c.course_name
                 FROM CourseSection cs
                 JOIN Course c ON cs.course_id = c.course_id
                 WHERE cs.teacher_id = ? AND cs.is_active = 1
@@ -310,8 +310,6 @@ app.post("/teacher/grading/:section_id",teacher_auth, (req, res) => {
         res.redirect("/teacher/grading/" + sectionId);
     }, 500);
 });
-
-
 
 app.listen(port, () => {
   console.log(`Starting server at port ${port}`);
