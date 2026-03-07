@@ -24,7 +24,7 @@
     <%- include("partials/mtbar") %>
     <%- include("partials/manAc") %>
     <div class="cont">
-        <h2>Account()</h2>
+        <h2>Account(<%= total %>)</h2>
 
         <table>
             <thead>
@@ -33,19 +33,21 @@
                     <th>รหัสประจำตัว</th>
                     <th>อีเมล</th>
                     <th>เบอร์โทร</th>
-                    <th>ห้อง</th>
-                    <th style="text-align: center;"><a href="/admin/manAc/addStu">เพิ่มข้อมูล</a></th>
+                    <th>สถานะ</th>
+                    <th style="text-align: center;"><a href="/admin/man/addStu">เพิ่มข้อมูล</a></th>
                 </tr>
             </thead>
-            <tbody><!-- must add data rater -->
+            <tbody>
+                <% data.forEach((item)=>{ %>
                 <tr>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td><a href="/admin/manAc/edit/">เปลี่ยนแปลงข้อมูล</a> <a href="/admin/manAc/del/">ลบข้อมูล</a></td>
+                    <td><%= item.first_name %>  <%= item.last_name %></td>
+                    <td><%= item.student_id %></td>
+                    <td><%= item.email %></td>
+                    <td><%= item.phone %></td>
+                    <td><%= item.student_status %></td>
+                    <td><a href="/admin/man/edit/">เปลี่ยนแปลงข้อมูล</a> <a href="/admin/man/del/">ลบข้อมูล</a></td>
                 </tr>
+                <% }); %>
             </tbody>
         </table>
     </div>

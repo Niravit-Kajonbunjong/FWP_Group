@@ -22,7 +22,7 @@
                 <img src="/public/img/bgpink.svg">
             </div>
             <div>
-                <form action="/admin/manAc/save" method="get">
+                <form action="/admin/man/save" method="get">
                     <label for="sir">ชื่อ</label><br>
                     <input type="text" name="sir" id="sir">
                     <label for="last">นามสกุล</label><br>
@@ -39,6 +39,11 @@
                     <input type="email" name="email" id="email" readonly>
                     <label for="edLev">วุฒิการศึกษา</label><br>
                     <input type="text" name="edLev" id="edLev">
+                    <label for="status">สถานะ</label>
+                    <select id="status" name="status">
+                        <option value="1">ยังคงอยู่ในโรงเรียน</option>
+                        <option value="0">ออกจากโรงเรียนไปแล้ว</option>
+                    </select>
 
                     <br>
                     <input type="submit" value="ยืนยันการเปลี่ยนแปลงข้อมูล">
