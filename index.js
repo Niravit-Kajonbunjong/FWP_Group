@@ -71,16 +71,12 @@ const generateAccessToken = (payload) => {
     return jwt.sign(payload, kate, { expiresIn: '7d' })
 }
 
-app.get("/", (req, res) => {
-  res.send('eiei'); 
-});
-
 app.post('/logout', (req, res) => {
     res.cookie('accessToken', '', { expires: new Date(0), httpOnly: true });
-    res.redirect('/login');
+    res.redirect('/');
 });
 
-app.get("/login", (req, res) => {
+app.get("/", (req, res) => {
   res.render("login"); 
 });
 //teacher_auth => student_auth
