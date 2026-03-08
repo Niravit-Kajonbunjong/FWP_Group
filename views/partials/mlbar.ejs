@@ -54,12 +54,12 @@ body {
         <% } %>
 
         <% if (user.role === 'registration') { %>
-            <a href="/regis/users" class="menu-item">ข้อมูลนักเรียน/อาจารย์</a>
             <a href="/regis/enrollment" class="menu-item">การลงทะเบียน</a>
             <a href="/regis/curriculum" class="menu-item">วิชาและหลักสูตร</a>
-        <% } %>
-
-        <% if (user.role === 'admin') { %>
+            <% } %>
+            
+            <% if (user.role === 'admin') { %>
+            <a href="/admin/users" class="menu-item">ข้อมูลนักเรียน/อาจารย์</a>
             <a href="/admin/accounts" class="menu-item">จัดการบัญชี</a>
         <% } %>
     </div>

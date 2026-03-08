@@ -11,7 +11,7 @@ app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js'));
 
 // const { teacher_auth }  = require('./middleware/auth.js');
-const { teacher_auth, student_auth}  = require('./middleware/auth.js');
+const { teacher_auth,student_auth,admin_auth,registration_auth }  = require('./middleware/auth.js');
 app.use(cookieParser());
 
 // Connect to SQLite database
@@ -123,12 +123,17 @@ app.get("/home", teacher_auth, (req, res) => {
     });
 });
 
+const getActiveSemester = (callback) => {
+    db.get("SELECT semester_id, term, year FROM Semester WHERE is_active = 1 LIMIT 1", [], (err, row) => {
+        callback(err, row);
+    });
+};
+
 app.get("/teacher/schedule", teacher_auth, (req, res) => {
     const userData = req.teacher;
-    let selectedSemester = req.query.semester_id; 
 
     const sqlUser = `
-        SELECT u.*, t.teacher_id, t.teacher_code 
+        SELECT u.*, t.teacher_id 
         FROM User u 
         LEFT JOIN Teacher t ON u.user_id = t.user_id 
         WHERE u.user_id = ?
@@ -136,47 +141,29 @@ app.get("/teacher/schedule", teacher_auth, (req, res) => {
 
     db.get(sqlUser, [userData.id], (err, user) => {
         if (err || !user) return res.status(500).send("ไม่พบข้อมูลผู้ใช้");
-        user.avatar = user.profile_image;
 
-        const sqlAllSemesters = `SELECT * FROM Semester WHERE term IN (1, 2) ORDER BY year DESC, term DESC`;
-        
-        db.all(sqlAllSemesters, [], (err, semesters) => {
-            if (err) return res.status(500).send("Database Error");
+        db.get("SELECT * FROM Semester WHERE is_active = 1 LIMIT 1", [], (err, activeSem) => {
+            if (err || !activeSem) return res.status(500).send("ไม่พบภาคเรียนที่เปิดใช้งาน (is_active=1)");
 
-            if (!selectedSemester && semesters.length > 0) {
-                const term1 = semesters.find(sem => sem.term == 1);
-                
-                if (term1) {
-                    selectedSemester = term1.semester_id;
-                } else {
-                    selectedSemester = semesters[0].semester_id;
-                }
-            }
-
-            let sqlSchedule = `
+            const sqlSchedule = `
                 SELECT cs.*, c.course_code, c.course_name, s.year, s.term
                 FROM CourseSection cs
                 JOIN Course c ON cs.course_id = c.course_id
                 JOIN Semester s ON cs.semester_id = s.semester_id
                 WHERE cs.teacher_id = ? 
                 AND cs.is_active = 1 
-                AND cs.schedule_day NOT IN ('Saturday', 'Sunday')
                 AND s.semester_id = ?
+                ORDER BY CASE cs.schedule_day 
+                    WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 
+                    WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 
+                    WHEN 'Friday' THEN 5 END, cs.start_time
             `;
-            
-            const params = [user.teacher_id, selectedSemester];
 
-            sqlSchedule += ` ORDER BY CASE cs.schedule_day 
-                                WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 
-                                WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 
-                                WHEN 'Friday' THEN 5 END, cs.start_time`;
-
-            db.all(sqlSchedule, params, (err, schedules) => {
+            db.all(sqlSchedule, [user.teacher_id, activeSem.semester_id], (err, schedules) => {
                 res.render("teacherSchedule", { 
                     user: user, 
                     schedules: schedules || [], 
-                    semesters: semesters,
-                    selectedSemester: selectedSemester
+                    currentSemester: activeSem
                 });
             });
         });
@@ -185,41 +172,28 @@ app.get("/teacher/schedule", teacher_auth, (req, res) => {
 
 app.get("/teacher/grading", teacher_auth, (req, res) => {
     const userData = req.teacher; 
-    let selectedSemester = req.query.semester_id; 
 
     db.get("SELECT * FROM User WHERE user_id = ?", [userData.id], (err, user) => {
         if (err || !user) return res.status(500).send("ไม่พบข้อมูลผู้ใช้");
-        user.avatar = user.profile_image;
 
         db.get("SELECT teacher_id FROM Teacher WHERE user_id = ?", [userData.id], (err, teacher) => {
             if (err || !teacher) return res.status(500).send("ไม่พบข้อมูลอาจารย์");
 
-            const sqlSemesters = `SELECT * FROM Semester WHERE term IN (1, 2) ORDER BY year DESC, term DESC`;
-            
-            db.all(sqlSemesters, [], (err, semesters) => {
-                if (err) return res.status(500).send("Database Error");
-
-                if (!selectedSemester && semesters.length > 0) {
-                    const term1 = semesters.find(sem => sem.term == 1);
-                    selectedSemester = term1 ? term1.semester_id : semesters[0].semester_id;
-                }
+            getActiveSemester((err, activeSem) => {
+                if (err || !activeSem) return res.status(500).send("ไม่พบข้อมูลภาคเรียนที่กำลังใช้งาน");
 
                 const sqlCourses = `
                     SELECT cs.section_id, cs.room, c.course_code, c.course_name
                     FROM CourseSection cs
                     JOIN Course c ON cs.course_id = c.course_id
-                    JOIN Semester s ON cs.semester_id = s.semester_id
                     WHERE cs.teacher_id = ? AND cs.is_active = 1 AND cs.semester_id = ?
                 `;
 
-                db.all(sqlCourses, [teacher.teacher_id, selectedSemester], (err, courses) => {
-                    if (err) return res.status(500).send("Error fetching courses");
-                    
+                db.all(sqlCourses, [teacher.teacher_id, activeSem.semester_id], (err, courses) => {
                     res.render("teacherCourseList", { 
                         user: user, 
-                        courses: courses, 
-                        semesters: semesters, 
-                        selectedSemester: selectedSemester 
+                        courses: courses,
+                        currentSemester: activeSem 
                     });
                 });
             });
@@ -246,7 +220,8 @@ app.get("/teacher/grading/:section_id",teacher_auth, (req, res) => {
         JOIN Student s ON e.student_id = s.student_id
         JOIN User u ON s.user_id = u.user_id
         LEFT JOIN Grade g ON s.student_id = g.student_id AND g.section_id = e.section_id
-        WHERE e.section_id = ? AND e.status = 'approved'
+        WHERE e.section_id = ? 
+        AND e.status = 'active' 
         ORDER BY s.student_code ASC
     `;
 
@@ -281,11 +256,9 @@ app.get("/teacher/grading/:section_id",teacher_auth, (req, res) => {
     });
 });
 
-
 app.post("/teacher/grading/:section_id",teacher_auth, (req, res) => {
     const userData = req.teacher;
     const sectionId = req.params.section_id;
-    
     let studentIds = req.body.student_id;
     let assigns = req.body.assignment_score;
     let midterms = req.body.midterm_score;

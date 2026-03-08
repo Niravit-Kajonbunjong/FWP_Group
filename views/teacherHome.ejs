@@ -60,7 +60,6 @@
                                                 age = today.getFullYear() - birthDate.getFullYear();
                                                 const m = today.getMonth() - birthDate.getMonth();
                                                 
-                                                // เช็คว่าเดือนปัจจุบันน้อยกว่าเดือนเกิด หรือยังไม่ถึงวันเกิดในเดือนนั้นๆ
                                                 if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
                                                     age--; 
                                                 }

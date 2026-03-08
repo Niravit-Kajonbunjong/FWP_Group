@@ -56,36 +56,32 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <% if (students && students.length === 0) { %>
-                                        <tr><td colspan="8" class="text-center py-4 text-muted">ยังไม่มีนักศึกษาลงทะเบียนในกลุ่มเรียนนี้</td></tr>
-                                    <% } %>
-                                    
                                     <% students.forEach((std, index) => { %>
                                         <tr>
                                             <td class="text-center"><%= index + 1 %></td>
                                             <td class="text-center fw-semibold"><%= std.student_code %></td>
                                             <td><%= std.first_name %> <%= std.last_name %></td>
+                                            
                                             <input type="hidden" name="student_id" value="<%= std.student_id %>">
                                             
                                             <td class="text-center">
-                                                <input type="number" name="assignment_score" class="score-input assign-input" min="0" max="30" 
-                                                       value="<%= (std.assignment_score !== null && std.assignment_score !== undefined) ? std.assignment_score : '' %>" 
-                                                       oninput="calculateRow(this)">
+                                                <input type="number" name="assignment_score" class="score-input assign-input" 
+                                                    value="<%= (std.assignment_score !== null) ? std.assignment_score : '' %>" 
+                                                    oninput="calculateRow(this)">
                                             </td>
                                             <td class="text-center">
-                                                <input type="number" name="midterm_score" class="score-input mid-input" min="0" max="30" 
-                                                       value="<%= (std.midterm_score !== null && std.midterm_score !== undefined) ? std.midterm_score : '' %>" 
-                                                       oninput="calculateRow(this)">
+                                                <input type="number" name="midterm_score" class="score-input mid-input" 
+                                                    value="<%= (std.midterm_score !== null) ? std.midterm_score : '' %>" 
+                                                    oninput="calculateRow(this)">
                                             </td>
                                             <td class="text-center">
-                                                <input type="number" name="final_score" class="score-input fin-input" min="0" max="40" 
-                                                       value="<%= (std.final_score !== null && std.final_score !== undefined) ? std.final_score : '' %>" 
-                                                       oninput="calculateRow(this)">
+                                                <input type="number" name="final_score" class="score-input fin-input" 
+                                                    value="<%= (std.final_score !== null) ? std.final_score : '' %>" 
+                                                    oninput="calculateRow(this)">
                                             </td>
-                                            
                                             <td class="text-center total-score">0</td>
                                             <td class="text-center">
-                                                <input type="hidden" name="grade_letter" class="grade-input" value="<%= std.grade_letter || '-' %>">
+                                                <input type="hidden" name="grade_letter" class="grade-input">
                                                 <span class="grade-badge"><%= std.grade_letter || '-' %></span>
                                             </td>
                                         </tr>

@@ -27,8 +27,15 @@
         .course-code { font-size: 0.95rem; font-weight: 600; color: #666; }
         .course-room { font-size: 0.85rem; color: #888; }
         
-        .semester-select { width: 220px; border-radius: 10px; border: 1px solid #ddd; padding: 5px 10px; font-size: 0.9rem; outline: none; }
-        .semester-select:focus { border-color: #c89bf7; box-shadow: 0 0 0 0.2rem rgba(200, 155, 247, 0.25); }
+        .current-semester-label {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            padding: 8px 15px;
+            font-size: 0.9rem;
+            color: #495057;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
@@ -41,15 +48,10 @@
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3 class="fw-bold mb-0">จัดการคะแนน</h3>
                     
-                    <form action="/teacher/grading" method="GET">
-                        <select name="semester_id" class="semester-select" onchange="this.form.submit()">
-                            <% semesters.forEach(sem => { %>
-                                <option value="<%= sem.semester_id %>" <%= selectedSemester == sem.semester_id ? 'selected' : '' %>>
-                                    ภาคเรียนที่ <%= sem.term %> / <%= sem.year %>
-                                </option>
-                            <% }) %>
-                        </select>
-                    </form>
+                    <div class="current-semester-label">
+                        <span class="text-muted small">ภาคเรียนปัจจุบัน:</span> 
+                        <strong><%= currentSemester.term %> / <%= currentSemester.year %></strong>
+                    </div>
                 </div>
                 
                 <div class="row g-4">
@@ -74,7 +76,7 @@
                         <div class="col-12">
                             <div class="p-5 bg-white rounded-4 border text-center shadow-sm">
                                 <img src="https://cdn-icons-png.flaticon.com/512/7486/7486744.png" width="80" class="mb-3 opacity-25">
-                                <h5 class="text-muted">ไม่พบวิชาที่สอนในเทอมที่เลือก</h5>
+                                <h5 class="text-muted">ไม่พบวิชาที่สอนในภาคเรียนนี้</h5>
                             </div>
                         </div>
                     <% } %>

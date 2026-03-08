@@ -28,6 +28,16 @@
         .course-code { font-weight: 700; font-size: 0.75rem; margin-bottom: 2px; }
         .course-name { font-size: 0.7rem; line-height: 1.2; font-weight: 500; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         .course-footer { margin-top: auto; font-size: 0.55rem; font-weight: 600; opacity: 0.8; letter-spacing: -0.2px;}
+        .semester-badge {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 50px;
+            padding: 5px 20px;
+            font-size: 0.85rem;
+            color: #6c757d;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: inline-block;
+        }
     </style>
 </head>
 <body>
@@ -43,17 +53,12 @@
                         <div style="font-size: 0.8rem;"><%= user.first_name %> <%= user.last_name %></div>
                     </div>
 
-                    <div class="p-3 bg-light border-bottom">
-                        <form action="/teacher/schedule" method="GET" id="semForm" class="d-flex align-items-center gap-3">
-                            <label class="fw-bold mb-0" style="font-size: 0.85rem;">เลือกภาคเรียน:</label>
-                            <select name="semester_id" class="form-select form-select-sm" style="width: 220px;" onchange="this.form.submit()">
-                                <% semesters.forEach(sem => { %>
-                                    <option value="<%= sem.semester_id %>" <%= selectedSemester == sem.semester_id ? 'selected' : '' %>>
-                                        ภาคเรียนที่ <%= sem.term %> / <%= sem.year %>
-                                    </option>
-                                <% }) %>
-                            </select>
-                        </form>
+                    <div class="p-3 bg-light border-bottom text-center">
+                        <div class="semester-badge">
+                            <i class="bi bi-calendar3 me-1"></i>
+                            <strong>ภาคเรียนปัจจุบัน:</strong> 
+                            <%= currentSemester.term %> / <%= currentSemester.year %>
+                        </div>
                     </div>
 
                     <div class="schedule-grid">
@@ -75,7 +80,7 @@
                                 if(!timeStr) return 0;
                                 const [h, m] = timeStr.split(':').map(Number);
                                 const mins = ((h - 9) * 60) + m;
-                                return (mins / 480) * 100; // 480 mins from 09:00 to 17:00
+                                return (mins / 480) * 100;
                             };
                         %>
 
@@ -90,6 +95,7 @@
                                     <% daySchedules.forEach(s => { 
                                         let left = getPos(s.start_time);
                                         let width = getPos(s.end_time) - left;
+                                        // สุ่มสีตามตัวอักษรสุดท้ายของรหัสวิชาเพื่อให้สีคงที่สำหรับวิชานั้นๆ
                                         let colorIdx = s.course_code.charCodeAt(s.course_code.length-1) % bgColors.length;
                                     %>
                                         <div class="course-block" style="left: <%= left %>%; width: <%= width %>%; background-color: <%= bgColors[colorIdx] %>;">
