@@ -14,25 +14,25 @@
     <%- include("partials/mtbar") %>
         <form action="/admin/man/saveTea" method="get">
             <label for="first">ชื่อ</label><br>
-            <input type="text" name="first" id="first">
+            <input type="text" name="first" id="first" required><br>
             <label for="last">นามสกุล</label><br>
-            <input type="text" name="last" id="last">
+            <input type="text" name="last" id="last" required><br>
             <label for="gender">เพศ</label><br>
-            <input type="text" name="gender" id="gender">
-            <label for="DOB">วัน - เดือน - ปี เกิด</label><br>
-            <input type="text" name="DOB" id="DOB">
+            <input type="text" name="gender" id="gender" required><br>
+            <label for="DOB">ปี - เดือน - วัน เกิด</label><br>
+            <input type="text" name="DOB" id="DOB" required><br>
             <label for="tel">เบอร์โทรศัพท์</label><br>
-            <input type="tel" name="tel" id="tel">
+            <input type="tel" name="tel" id="tel"><br>
             <label for="ID">รหัสประจำตัว</label><br>
-            <input type="text" name="ID" id="ID">
+            <input type="text" name="ID" id="ID" required><br>
             <label for="email">อีเมล</label><br>
-            <input type="email" name="email" id="email">
+            <input type="email" name="email" id="email" required><br>
             <label for="password">รหัสอีเมล</label><br>
-            <input type="password" name="password" id="password">
+            <input type="password" name="password" id="password" required><br>
             <label for="edLev">วุฒิการศึกษา</label><br>
-            <input type="text" name="edLev" id="edLev">
+            <input type="text" name="edLev" id="edLev"><br>
 
-            <br>
+            <br><br>
             <input type="submit" value="ยืนยันการเพิ่มข้อมูล">
         </form>
 </body>

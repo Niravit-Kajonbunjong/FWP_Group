@@ -22,9 +22,9 @@
 </head>
 <body>
     <%- include("partials/mtbar") %>
-    <%- include("partials/manAc") %>
+    <%- include("partials/manInfo") %>
     <div class="cont">
-        <h2>Account(<%= total %>)</h2>
+        <h2>Student number (<%= total %>)</h2>
 
         <table>
             <thead>
@@ -45,7 +45,7 @@
                     <td><%= item.email %></td>
                     <td><%= item.phone %></td>
                     <td><%= item.student_status %></td>
-                    <td><a href="/admin/man/edit/">เปลี่ยนแปลงข้อมูล</a> <a href="/admin/man/del/">ลบข้อมูล</a></td>
+                    <td><a href="/admin/man/editStu/<%= item.user_id %>">เปลี่ยนแปลงข้อมูล</a> <a href="/admin/man/delStu/<%= item.user_id %>">ลบข้อมูล</a></td>
                 </tr>
                 <% }); %>
             </tbody>

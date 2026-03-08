@@ -28,10 +28,9 @@
 
 <body>
     <%- include("partials/mtbar") %>
-    <!-- -->
     <div class="info">
         <div>
-            <img src="/img/<%= data.profile_imgae %>"> <!-- maybe in would change it later-->
+            <img src="/img/<%= data.profile_imgae %>">
         </div>
         <div>
             <table>
@@ -44,20 +43,18 @@
                     <td><%= data.gender %></td>
                 </tr>
                 <tr>
-                    <th>วัน / เดือน / ปี เกิด</th>
+                    <th>ปี - เดือน - วัน เกิด</th>
                     <th>อายุ</th>
                 </tr>
                 <tr>
                     <td><%= data.birth_date %></td>
-                    <% 
-                        const birthDate = new Date(<% data.birth_date %>);
-                        const today = new Date();
-                        let age = today.getFullYear() - birthDate.getFullYear();
-                        const monthDiff = today.getMonth() - birthDate.getMonth();
-                        if (monthDiff < 0 || (monthDiff == 0 && today.getDate() < birthDate.getDate())) {
-                            age--;
-                        }
-                    %>
+                    <% const birthDate = new Date( data.birth_date); 
+                        const today = new Date(); 
+                        let age = today.getFullYear() - birthDate.getFullYear(); 
+                        const monthDiff = today.getMonth() - birthDate.getMonth(); 
+                        if (monthDiff < 0 || (monthDiff == 0 && today.getDate() < birthDate.getDate())) { 
+                            age--; 
+                        } %>
                     <td><%= age %> ปี</td>
                 </tr>
                 <tr>

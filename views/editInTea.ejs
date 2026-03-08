@@ -22,30 +22,30 @@
                 <img src="/public/img/bgpink.svg">
             </div>
             <div>
-                <form action="/admin/man/save" method="get">
-                    <label for="sir">ชื่อ</label><br>
-                    <input type="text" name="sir" id="sir">
+                <form action="/admin/man/changeTea" method="get">
+                    <label for="first">ชื่อ</label><br>
+                    <input type="text" name="first" id="first" value="<%= data.first_name %>" required><br>
                     <label for="last">นามสกุล</label><br>
-                    <input type="text" name="last" id="last">
+                    <input type="text" name="last" id="last" value="<%= data.last_name %>" required><br>
                     <label for="gender">เพศ</label><br>
-                    <input type="text" name="gender" id="gender" readonly>
-                    <label for="DOB">วัน - เดือน - ปี เกิด</label><br>
-                    <input type="text" name="DOB" id="DOB" readonly>
+                    <input type="text" name="gender" id="gender" value="<%= data.gender %>" readonly><br>
+                    <label for="DOB">ปี - เดือน - วัน เกิด</label><br>
+                    <input type="text" name="DOB" id="DOB" value="<%= data.birth_date %>" readonly><br>
                     <label for="tel">เบอร์โทรศัพท์</label><br>
-                    <input type="tel" name="tel" id="tel">
+                    <input type="tel" name="tel" id="tel" value="<%= data.phone %>"><br>
                     <label for="ID">รหัสประจำตัว</label><br>
-                    <input type="text" name="ID" id="ID" readonly>
+                    <input type="text" name="ID" id="ID" value="<%= data.teacher_code %>" readonly><br>
                     <label for="email">อีเมล</label><br>
-                    <input type="email" name="email" id="email" readonly>
+                    <input type="email" name="email" id="email" value="<%= data.email %>" readonly><br>
                     <label for="edLev">วุฒิการศึกษา</label><br>
-                    <input type="text" name="edLev" id="edLev">
-                    <label for="status">สถานะ</label>
+                    <input type="text" name="edLev" id="edLev" value="<%= data.education_level %>"><br>
+                    <label for="status">สถานะ</label><br>
                     <select id="status" name="status">
-                        <option value="1">ยังคงอยู่ในโรงเรียน</option>
+                        <option value="1" selected>ยังคงอยู่ในโรงเรียน</option>
                         <option value="0">ออกจากโรงเรียนไปแล้ว</option>
                     </select>
 
-                    <br>
+                    <br><br>
                     <input type="submit" value="ยืนยันการเปลี่ยนแปลงข้อมูล">
                 </form>
             </div>
