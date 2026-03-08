@@ -10,8 +10,8 @@ const app = express();
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js'));
 
-// const { teacher_auth }  = require('./middleware/auth.js');
-const { teacher_auth, student_auth}  = require('./middleware/auth.js');
+const { teacher_auth, student_auth } = require('./middleware/auth.js');
+
 app.use(cookieParser());
 
 // Connect to SQLite database
@@ -29,20 +29,28 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 const kate = "wowzaeiei";
+
+const generateAccessToken = (payload) => {
+    return jwt.sign(payload, kate, { expiresIn: '7d' })
+}
+
 app.post("/login", async(req, res) => {
     try {
         const { email, password } = req.body;
-        console.log("email: ", email)
+
         const sql = 'SELECT * FROM User WHERE email = ? AND password = ?';
+
         db.get(sql, [email, password], async function (err, results) {
+
             if (err) {
-                console.error("Error processing request", err);
-                return res.status(500).send({ message: "Error processing request" });
+                console.error(err);
+                return res.status(500).send("Database error");
             }
+
             if (!results) {
-                res.status(404).send('Authentication failed: user not found.');
-                return;
+                return res.status(404).send("Authentication failed");
             }
+
             const payload = {
                 id: results.user_id,
                 role: results.role
@@ -50,26 +58,25 @@ app.post("/login", async(req, res) => {
 
             const accessToken = generateAccessToken(payload);
 
-            jwt.sign(payload, kate, { expiresIn: '7d' }, (err, token) => {
-                if (err) throw err;
-                res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
-                if(results.role === 'teacher') {
-                    return res.redirect('/home');
-                }else {
-                    return res.redirect('/');
-                }
-            });
+            res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
+
+            if(results.role === 'teacher'){
+                return res.redirect('/home');
+            }
+            else if(results.role === 'student'){
+                return res.redirect('/student/home');
+            }
+            else{
+                return res.redirect('/');
+            }
 
         });
+
     } catch (error) {
-        console.error("Unexpected error", error);
-        res.status(500).json({ message: "Unexpected error processing login" });
+        console.error(error);
+        res.status(500).send("Unexpected error");
     }
 });
-
-const generateAccessToken = (payload) => {
-    return jwt.sign(payload, kate, { expiresIn: '7d' })
-}
 
 app.get("/", (req, res) => {
   res.send('eiei'); 
@@ -83,11 +90,10 @@ app.post('/logout', (req, res) => {
 app.get("/login", (req, res) => {
   res.render("login"); 
 });
-//teacher_auth => student_auth
-app.get("/home", teacher_auth, (req, res) => {
-    
-    const userData = req.teacher;
-    // const userData = req.student;
+
+app.get("/student/home", student_auth, (req, res) => {
+
+    const userData = req.student;
 
     const sql = `
         SELECT 
@@ -100,45 +106,54 @@ app.get("/home", teacher_auth, (req, res) => {
             u.birth_date,
             u.phone,
             u.profile_image,
-            t.teacher_code,
-            t.education_level
+            s.student_code,
+            h.room_name
         FROM User u
-        LEFT JOIN Teacher t ON u.user_id = t.user_id
+        LEFT JOIN Student s ON u.user_id = s.user_id
+        LEFT JOIN Homeroom h ON s.homeroom_id = h.homeroom_id
         WHERE u.user_id = ?
     `;
 
     db.get(sql, [userData.id], (err, row) => {
+
         if (err) {
             console.error(err.message);
-            return res.status(500).send("เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
+            return res.status(500).send("Database error");
         }
-        
+
         if (!row) {
-            return res.status(404).send("ไม่พบข้อมูลผู้ใช้นี้ในระบบ");
+            return res.status(404).send("User not found");
         }
 
         row.avatar = row.profile_image;
 
-        res.render("home", { user: row }); 
+        res.render("home", { user: row });
+
     });
+
 });
 
+app.get("/student/timetable", student_auth, (req, res) => {
 
-app.get("/teacher/schedule",teacher_auth,(req, res) => {
-    const userData = req.teacher;
+    const userData = req.student;
 
     const sqlUser = `
-        SELECT u.*, t.teacher_id, t.teacher_code 
-        FROM User u 
-        LEFT JOIN Teacher t ON u.user_id = t.user_id 
+        SELECT u.*, s.student_id, s.student_code
+        FROM User u
+        LEFT JOIN Student s ON u.user_id = s.user_id
         WHERE u.user_id = ?
     `;
 
     db.get(sqlUser, [userData.id], (err, user) => {
-        if (err || !user) {
-            return res.status(500).send("ไม่พบข้อมูลผู้ใช้");
+
+        if (err) {
+            console.error(err);
+            return res.status(500).send("Database error");
         }
-        user.avatar = user.profile_image;
+
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
 
         const sqlSchedule = `
             SELECT 
@@ -151,10 +166,12 @@ app.get("/teacher/schedule",teacher_auth,(req, res) => {
                 c.credit_hours,
                 s.year,
                 s.term
-            FROM CourseSection cs
+            FROM Enrollment e
+            JOIN CourseSection cs ON e.section_id = cs.section_id
             JOIN Course c ON cs.course_id = c.course_id
             JOIN Semester s ON cs.semester_id = s.semester_id
-            WHERE cs.teacher_id = ? AND cs.is_active = 1
+            WHERE e.student_id = ?
+            AND e.status = 'approved'
             ORDER BY 
                 CASE cs.schedule_day
                     WHEN 'Monday' THEN 1
@@ -164,157 +181,173 @@ app.get("/teacher/schedule",teacher_auth,(req, res) => {
                     WHEN 'Friday' THEN 5
                     WHEN 'Saturday' THEN 6
                     WHEN 'Sunday' THEN 7
-                END, 
-                cs.start_time;
+                END,
+                cs.start_time
         `;
 
-        db.all(sqlSchedule, [user.teacher_id], (err, schedules) => {
+        db.all(sqlSchedule, [user.student_id], (err, schedules) => {
+
             if (err) {
-                console.error(err.message);
-                return res.status(500).send("เกิดข้อผิดพลาดในการดึงตารางสอน");
+                console.error(err);
+                return res.status(500).send("Schedule error");
             }
-            
-            res.render("teacherSchedule", { user: user, schedules: schedules });
-        });
-    });
-});
 
-app.get("/teacher/grading",teacher_auth, (req, res) => {
-    const userData = req.teacher; 
-
-    db.get("SELECT * FROM User WHERE user_id = ?", [userData.id], (err, user) => {
-        if (err || !user) return res.status(500).send("ไม่พบข้อมูลผู้ใช้");
-        user.avatar = user.profile_image;
-
-        db.get("SELECT teacher_id FROM Teacher WHERE user_id = ?", [userData.id], (err, teacher) => {
-            if (err || !teacher) return res.status(500).send("ไม่พบข้อมูลอาจารย์");
-
-            const sqlCourses = `
-                SELECT
-                    cs.section_id,
-                    cs.room,
-                    c.course_code,
-                    c.course_name
-                FROM CourseSection cs
-                JOIN Course c ON cs.course_id = c.course_id
-                WHERE cs.teacher_id = ? AND cs.is_active = 1
-            `;
-
-            db.all(sqlCourses, [teacher.teacher_id], (err, courses) => {
-                if (err) return res.status(500).send("เกิดข้อผิดพลาดในการดึงข้อมูลวิชา");
-                res.render("teacherCourseList", { user: user, courses: courses });
+            res.render("studentSchedule", {
+                user: user,
+                schedules: schedules || []
             });
+
         });
+
     });
+
 });
 
+app.get("/student/grades", student_auth, (req, res) => {
 
-app.get("/teacher/grading/:section_id",teacher_auth, (req, res) => {
-    const sectionId = req.params.section_id;
-    const userData = req.teacher;
+const year = req.query.year;
+const term = req.query.term;
 
-    const sqlStudents = `
-        SELECT 
-            s.student_id, 
-            s.student_code, 
-            u.first_name, 
-            u.last_name,
-            g.assignment_score, 
-            g.midterm_score, 
-            g.final_score, 
-            g.grade_letter
-        FROM Enrollment e
-        JOIN Student s ON e.student_id = s.student_id
-        JOIN User u ON s.user_id = u.user_id
-        LEFT JOIN Grade g ON s.student_id = g.student_id AND g.section_id = e.section_id
-        WHERE e.section_id = ? AND e.status = 'approved'
-        ORDER BY s.student_code ASC
-    `;
+let sql = `
+SELECT 
+c.course_code,
+c.course_name,
+c.credit_hours,
+g.assignment_score,
+g.midterm_score,
+g.final_score,
+g.grade_letter,
+s.year,
+s.term
+FROM Grade g
+JOIN CourseSection cs ON g.section_id = cs.section_id
+JOIN Course c ON cs.course_id = c.course_id
+JOIN Semester s ON cs.semester_id = s.semester_id
+WHERE g.student_id = ?
+`;
 
-    const sqlCourse = `
-        SELECT c.course_code, c.course_name, s.term, s.year
-        FROM CourseSection cs
-        JOIN Course c ON cs.course_id = c.course_id
-        JOIN Semester s ON cs.semester_id = s.semester_id
-        WHERE cs.section_id = ?
-    `;
+let params = [req.student.student_id];
 
-    db.get("SELECT * FROM User WHERE user_id = ?", [userData.id], (err, user) => {
-        if (user) user.avatar = user.profile_image;
+if(year){
+sql += " AND s.year = ?";
+params.push(year);
+}
 
-        db.get(sqlCourse, [sectionId], (err, course) => {
-            if (err || !course) return res.status(404).send("ไม่พบรายวิชานี้");
+if(term){
+sql += " AND s.term = ?";
+params.push(term);
+}
 
-            db.all(sqlStudents, [sectionId], (err, students) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).send("Internal Server Error");
-                }
-                console.log("เช็คข้อมูลนักเรียนคนแรก:", students[0]);
-                res.render("teacherGrading", { 
-                    user: user || {}, 
-                    sectionId: sectionId,
-                    course: course, 
-                    students: students
-                });
-            });
-        });
-    });
+sql += " ORDER BY s.year DESC, s.term DESC";
+
+db.all(sql, params, (err, grades) => {
+
+if(err){
+console.error(err);
+return res.status(500).send("Grade error");
+}
+
+db.all(
+`SELECT DISTINCT year FROM Semester ORDER BY year DESC`,
+(err, years)=>{
+
+res.render("studentGrades",{
+user:req.student,
+grades:grades,
+years:years.map(y=>y.year),
+selectedYear:year,
+selectedTerm:term
 });
 
-
-app.post("/teacher/grading/:section_id",teacher_auth, (req, res) => {
-    const userData = req.teacher;
-    const sectionId = req.params.section_id;
-    
-    let studentIds = req.body.student_id;
-    let assigns = req.body.assignment_score;
-    let midterms = req.body.midterm_score;
-    let finals = req.body.final_score;
-    let grades = req.body.grade_letter;
-
-    if (!Array.isArray(studentIds)) {
-        studentIds = [studentIds];
-        assigns = [assigns];
-        midterms = [midterms];
-        finals = [finals];
-        grades = [grades];
-    }
-
-    for (let i = 0; i < studentIds.length; i++) {
-        let sId = studentIds[i];
-        
-        let asn = (assigns[i] !== "" && assigns[i] !== undefined) ? parseFloat(assigns[i]) : 0;
-        let mid = (midterms[i] !== "" && midterms[i] !== undefined) ? parseFloat(midterms[i]) : 0;
-        let fin = (finals[i] !== "" && finals[i] !== undefined) ? parseFloat(finals[i]) : 0;
-        let grd = grades[i] || 'F';
-
-        const sqlSaveGrade = `
-            INSERT INTO Grade (student_id, section_id, entered_by, assignment_score, midterm_score, final_score, grade_letter, entered_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-            ON CONFLICT(student_id, section_id) 
-            DO UPDATE SET 
-                assignment_score = excluded.assignment_score,
-                midterm_score = excluded.midterm_score,
-                final_score = excluded.final_score,
-                grade_letter = excluded.grade_letter,
-                entered_at = CURRENT_TIMESTAMP
-        `;
-
-        db.run(sqlSaveGrade, [sId, sectionId, userData.id, asn, mid, fin, grd], (err) => {
-            if (err) console.error("Database Error:", err.message);
-        });
-    }
-
-    setTimeout(() => {
-        res.redirect("/teacher/grading/" + sectionId);
-    }, 500);
 });
 
-app.listen(port, () => {
-  console.log(`Starting server at port ${port}`);
 });
 
+});
+
+app.get("/student/enroll", student_auth, (req,res)=>{
+
+const sql = `
+SELECT
+cs.section_id,
+c.course_code,
+c.course_name,
+c.course_type,
+c.credit_hours,
+cs.schedule_day,
+cs.start_time,
+cs.end_time,
+cs.room
+FROM CourseSection cs
+JOIN Course c ON cs.course_id = c.course_id
+JOIN Semester s ON cs.semester_id = s.semester_id
+WHERE LOWER(c.course_type) IN ('elective','club')
+AND cs.is_active = 1
+AND c.is_active = 1
+AND s.is_active = 1
+`;
+
+db.all(sql,(err,sections)=>{
+
+if(err){
+console.error(err);
+return res.status(500).send("Database error");
+}
+
+res.render("studentEnrollment",{
+user:req.student,
+sections:sections
+});
+
+});
+
+});
+
+app.post("/student/enroll", student_auth, (req,res)=>{
+
+const sectionId = req.body.section_id;
+const userId = req.student.id;
+
+if(!sectionId){
+return res.redirect("/student/enroll");
+}
+
+const getStudentSql = `
+SELECT student_id
+FROM Student
+WHERE user_id = ?
+`;
+
+db.get(getStudentSql,[userId],(err,student)=>{
+
+if(err){
+console.error(err);
+return res.send("Student lookup error");
+}
+
+if(!student){
+return res.send("Student not found");
+}
+
+const insertSql = `
+INSERT INTO Enrollment (student_id, section_id, status)
+VALUES (?, ?, 'pending')
+`;
+
+db.run(insertSql,[student.student_id,sectionId],(err)=>{
+
+if(err){
+console.error(err);
+return res.send("Enrollment error");
+}
+
+res.redirect("/student/enroll");
+
+});
+
+});
+
+});
 app.listen(port, () => {
   console.log(`Starting server at port ${port}`);
 });

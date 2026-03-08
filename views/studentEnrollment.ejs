@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Enrollment</title>
+
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+background:#dbe0e5;
+font-family:'Prompt',sans-serif;
+height:100vh;
+display:flex;
+justify-content:center;
+}
+
+.app-container{
+width:1280px;
+height:100vh;
+background:#f4f5f8;
+display:flex;
+flex-direction:column;
+box-shadow:0 0 25px rgba(0,0,0,0.1);
+}
+
+.top-wrapper{
+height:64px;
+background:white;
+}
+
+.bottom-wrapper{
+display:flex;
+flex:1;
+}
+
+.sidebar-wrapper{
+width:280px;
+background:#F4F7FE;
+border-right:1px solid #E0E0E0;
+}
+
+.main-content{
+flex:1;
+padding:25px;
+overflow:auto;
+}
+
+.enroll-card{
+background:white;
+border-radius:12px;
+padding:25px;
+border:1px solid #e0e0e0;
+box-shadow:0 4px 15px rgba(0,0,0,0.05);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app-container">
+
+<div class="top-wrapper">
+<%- include('partials/mtbar') %>
+</div>
+
+<div class="bottom-wrapper">
+
+<div class="sidebar-wrapper">
+<%- include('partials/mlbar') %>
+</div>
+
+<main class="main-content">
+
+<div class="enroll-card">
+
+<h4 class="fw-bold mb-3">Enrollment</h4>
+
+<form method="POST" action="/student/enroll">
+
+<!-- COURSE DROPDOWN -->
+
+<div class="mb-4">
+
+<label class="form-label">Select Course</label>
+
+<select class="form-select" name="section_id">
+
+<option value="">-- Select Course --</option>
+
+<% sections.forEach(sec => { %>
+
+<option value="<%= sec.section_id %>">
+<%= sec.course_name %> (<%= sec.course_type %>)
+</option>
+
+<% }) %>
+
+</select>
+
+</div>
+
+<!-- COURSE TABLE -->
+
+<table class="table table-bordered table-hover">
+
+<thead class="table-light">
+<tr>
+<th>Course Code</th>
+<th>Course Name</th>
+<th>Type</th>
+<th>Credits</th>
+<th>Day</th>
+<th>Time</th>
+<th>Room</th>
+</tr>
+</thead>
+
+<tbody>
+
+<% sections.forEach(sec => { %>
+
+<tr>
+
+<td><%= sec.course_code %></td>
+
+<td><%= sec.course_name %></td>
+
+<td>
+<span class="badge bg-<%= sec.course_type === 'club' ? 'warning' : 'primary' %>">
+<%= sec.course_type %>
+</span>
+</td>
+
+<td><%= sec.credit_hours %></td>
+
+<td><%= sec.schedule_day %></td>
+
+<td><%= sec.start_time %> - <%= sec.end_time %></td>
+
+<td><%= sec.room %></td>
+
+</tr>
+
+<% }) %>
+
+</tbody>
+
+</table>
+
+<button class="btn btn-primary mt-3">
+Submit Enrollment
+</button>
+
+</form>
+
+</div>
+
+</main>
+
+</div>
+
+</div>
+
+</body>
+</html>

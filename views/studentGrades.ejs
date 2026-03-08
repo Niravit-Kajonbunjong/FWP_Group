@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Grades</title>
+
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+background-color:#dbe0e5;
+font-family:'Prompt',sans-serif;
+height:100vh;
+overflow:hidden;
+display:flex;
+justify-content:center;
+}
+
+.app-container{
+width:1280px;
+max-width:100%;
+height:100vh;
+background:#f4f5f8;
+display:flex;
+flex-direction:column;
+box-shadow:0 0 25px rgba(0,0,0,0.1);
+}
+
+.top-wrapper{
+height:64px;
+background:white;
+}
+
+.bottom-wrapper{
+display:flex;
+flex:1;
+overflow:hidden;
+}
+
+.sidebar-wrapper{
+width:280px;
+background:#F4F7FE;
+border-right:1px solid #E0E0E0;
+}
+
+.main-content{
+flex:1;
+padding:25px;
+overflow:auto;
+}
+
+.grade-card{
+background:white;
+border-radius:12px;
+padding:25px;
+border:1px solid #e0e0e0;
+box-shadow:0 4px 15px rgba(0,0,0,0.05);
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="app-container">
+
+<!-- TOP BAR -->
+
+<div class="top-wrapper">
+<%- include('partials/mtbar') %>
+</div>
+
+<div class="bottom-wrapper">
+
+<!-- LEFT MENU -->
+
+<div class="sidebar-wrapper">
+<%- include('partials/mlbar') %>
+</div>
+
+<main class="main-content">
+
+<div class="grade-card">
+
+<h4 class="fw-bold mb-4">My Grades</h4>
+
+<!-- SEARCH FILTER -->
+
+<form method="GET" action="/student/grades" class="row mb-4">
+
+<div class="col-md-3">
+
+<label class="form-label">Year</label>
+
+<select name="year" class="form-select" onchange="this.form.submit()">
+
+<option value="">All Years</option>
+
+<% years.forEach(y => { %>
+
+<option value="<%= y %>" <%= selectedYear == y ? 'selected' : '' %>>
+
+<%= y %>
+
+</option>
+
+<% }) %>
+
+</select>
+
+</div>
+
+<div class="col-md-3">
+
+<label class="form-label">Term</label>
+
+<select name="term" class="form-select" onchange="this.form.submit()">
+
+<option value="">All Terms</option>
+
+<option value="1" <%= selectedTerm == 1 ? 'selected' : '' %>>1</option>
+
+<option value="2" <%= selectedTerm == 2 ? 'selected' : '' %>>2</option>
+
+<option value="3" <%= selectedTerm == 3 ? 'selected' : '' %>>3</option>
+
+</select>
+
+</div>
+
+</form>
+
+<!-- GRADE TABLE -->
+
+<table class="table table-bordered table-hover">
+
+<thead class="table-light">
+
+<tr>
+<th>Course Code</th>
+<th>Course Name</th>
+<th>Credits</th>
+<th>Score</th>
+<th>Assignment</th>
+<th>Midterm</th>
+<th>Final</th>
+<th>Grade</th>
+<th>Year</th>
+<th>Term</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+<% if(grades.length === 0){ %>
+
+<tr>
+<td colspan="7" class="text-center text-muted">
+No grade data
+</td>
+</tr>
+
+<% } %>
+
+<% grades.forEach(g => { %>
+
+<tr>
+
+<td><%= g.course_code %></td>
+
+<td><%= g.course_name %></td>
+
+<td><%= g.credit_hours %></td>
+
+<td><%= g.assignment_score %></td>
+<td><%= g.midterm_score %></td>
+<td><%= g.final_score %></td>
+<td class="fw-bold"><%= g.grade_letter %></td>
+
+<td><%= g.year %></td>
+
+<td><%= g.term %></td>
+
+</tr>
+
+<% }) %>
+
+</tbody>
+
+</table>
+
+</div>
+
+</main>
+
+</div>
+
+</div>
+
+</body>
+</html>

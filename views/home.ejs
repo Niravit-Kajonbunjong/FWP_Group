@@ -1,20 +1,161 @@
 <!DOCTYPE html>
+
 <html lang="th">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบจัดการการศึกษา</title>
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/css/index.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Student Home</title>
+
+<link href="/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+margin:0;
+background-color:#dbe0e5;
+font-family:'Prompt',sans-serif;
+height:100vh;
+overflow:hidden;
+display:flex;
+justify-content:center;
+}
+
+.app-container{
+width:1280px;
+max-width:100%;
+height:100vh;
+background-color:#f4f5f8;
+display:flex;
+flex-direction:column;
+box-shadow:0 0 25px rgba(0,0,0,0.1);
+}
+
+.top-wrapper{
+height:64px;
+width:100%;
+flex-shrink:0;
+background-color:#ffffff;
+z-index:10;
+}
+
+.bottom-wrapper{
+display:flex;
+flex:1;
+overflow:hidden;
+}
+
+.sidebar-wrapper{
+width:280px;
+height:100%;
+flex-shrink:0;
+background-color:#F4F7FE;
+border-right:1px solid #E0E0E0;
+}
+
+.main-content{
+flex:1;
+padding:25px;
+overflow:auto;
+}
+
+</style>
+
 </head>
+
 <body>
-                <% if (user.role === 'teacher') { %>
-                    <%- include('teacherHome') %> 
-                <% } else if (user.role === 'student') { %>
-                    <%- include('studentHome') %> <% } else if (user.role === 'registration') { %>
-                    <%- include('regisHome') %> <% } else { %>
-                    <div class="alert alert-danger w-100 text-center">ไม่พบสิทธิ์การใช้งาน</div>
-                <% } %>
+
+<div class="app-container">
+
+<!-- TOP BAR -->
+
+<div class="top-wrapper">
+<%- include('partials/mtbar') %>
+</div>
+
+<div class="bottom-wrapper">
+
+<!-- LEFT SIDEBAR -->
+
+<div class="sidebar-wrapper">
+<%- include('partials/mlbar') %>
+</div>
+
+<!-- MAIN CONTENT -->
+
+<main class="main-content">
+
+<div class="container">
+
+<div class="card shadow">
+<div class="card-body">
+
+<div class="row">
+
+<!-- Profile Image -->
+
+<div class="col-md-3 text-center">
+<img src="/images/<%= user.avatar %>"
+class="img-fluid rounded-circle"
+style="width:150px;height:150px;object-fit:cover;">
+</div>
+
+<!-- User Information -->
+
+<div class="col-md-9">
+
+<h3 class="mb-3">
+<%= user.first_name %> <%= user.last_name %>
+</h3>
+
+<table class="table table-bordered">
+
+<tr>
+<th>Student Code</th>
+<td><%= user.student_code %></td>
+</tr>
+
+<tr>
+<th>Email</th>
+<td><%= user.email %></td>
+</tr>
+
+<tr>
+<th>Gender</th>
+<td><%= user.gender %></td>
+</tr>
+
+<tr>
+<th>Birth Date</th>
+<td><%= user.birth_date %></td>
+</tr>
+
+<tr>
+<th>Phone</th>
+<td><%= user.phone %></td>
+</tr>
+
+<tr>
+<th>Homeroom</th>
+<td><%= user.room_name %></td>
+</tr>
+
+</table>
+
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+
+</main>
+
+</div>
+</div>
+
 </body>
 </html>
