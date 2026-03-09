@@ -83,57 +83,63 @@ app.get("/admin/man/addStu", (req, res) => {
   res.render("addInStu");
 });
 
-app.get("/admin/man/saveStu", (req, res) => {
-  let { first, last, gender, DOB, tel, ID, email, password, room} = req.query;
-  const userId = `SELECT COUNT(*) FROM User;`;
-  console.log(userId);
-  const User = `INSERT INTO User VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?);`;
+app.get("/admin/man/saveStu", (req, res) => { // fix logic record student
+  let { first, last, gender, DOB, tel, ID, email, password, room } = req.query;
+
+  const userSql = `INSERT INTO User(email, password, role, gender, first_name, last_name, birth_date, phone, profile_image, is_active, created_at) 
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
   
-  db.run(User, [Number(userId) + 1, email, password, 'student', gender, first, last, DOB, tel, ID + ".png", 1, new Date().toISOString().slice(0, 19).replace('T', ' ')], (err) => { 
-    if (err) { 
-      return console.error('Error insert User data:', err.message); 
-    } 
-    console.log('Table user inserted data successful'); 
-  });
+  const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-  const studentrId = `SELECT COUNT(*) FROM Student;`;
-  const Student = `INSERT INTO Student VALUES (?, ?, ?, ?, ?)`;
-  db.run(Student, [Number(studentrId) + 1, Number(userId) + 1, room, ID, 'active'], (err) => { 
-    if (err) { 
-      return console.error('Error insert Student data:', err.message); 
-    } 
-    console.log('Table student inserted data successful'); 
-  });
+  db.run(userSql, [email, password, 'student', gender, first, last, DOB, tel, ID + ".png", 1, timestamp], function(err) {
+    if (err) {
+      console.error('Error inserting User data:', err.message);
+      return res.status(500).send("Database Error");
+    }
 
-  res.redirect("/admin/man/student");
+    const newUserId = this.lastID;
+//    console.log(`User created with ID: ${newUserId}`); // debug to know userId
+
+    const studentSql = `INSERT INTO Student(user_id, homeroom_id, student_code, student_status) VALUES (?, ?, ?, ?);`;
+
+    db.run(studentSql, [newUserId, room, ID, 'active'], (err) => {
+      if (err) {
+        console.error('Error inserting Student data:', err.message);
+        return res.status(500).send("Database Error");
+      }
+      
+      console.log('Table student inserted data successful');
+      res.redirect("/admin/man/student");
+    });
+  });
 });
 
 app.get("/admin/man/addTea", (req, res) => {
   res.render("addInTea");
 });
 
-app.get("/admin/man/saveTea", (req, res) => {
-    let { first, last, gender, DOB, tel, ID, email, password, edLev} = req.query;
-  const userId = `SELECT COUNT(*) FROM User;`;
-  const User = `INSERT INTO User VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? ,?);`;
+app.get("/admin/man/saveTea", (req, res) => { // fix logic record teacher
+  let { first, last, gender, DOB, tel, ID, email, password, edLev } = req.query;
+
+  const userSql = `INSERT INTO User(email, password, role, gender, first_name, last_name, birth_date, phone, profile_image, is_active, created_at) 
+                   VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
   
-  db.run(User, [Number(userId) + 1, email, password, 'teacher', gender, first, last, DOB, tel, ID + ".png", 1, new Date().toISOString().slice(0, 19).replace('T', ' ')], (err) => { 
-    if (err) { 
-      return console.error('Error insert user data:', err.message); 
-    } 
-    console.log('User table inserted data successful'); 
-  });
+  const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-  const teacherId = `SELECT COUNT(*) FROM Teacher;`;
-  const Teacher = `INSERT INTO Teacher VALUES (?, ?, ?, ?, ?)`;
-  db.run(Teacher, [teacherId, Number(userId) + 1, ID, edLev, 1], (err) => { 
-    if (err) { 
-      return console.error('Error insert Student data:', err.message); 
-    } 
-    console.log('Table student inserted data successful'); 
-  });
+  db.run(userSql, [email, password, 'teacher', gender, first, last, DOB, tel, ID + ".png", 1, timestamp], function(err) {
+    if (err) return console.error(err.message);
 
-  res.redirect("/admin/man/teacher");
+    const newUserId = this.lastID;
+
+    const teacherSql = `INSERT INTO Teacher(user_id, teacher_code, education_level) VALUES (?, ?, ?);`;
+
+    db.run(teacherSql, [newUserId, ID, edLev], (err) => {
+      if (err) return console.error(err.message);
+      
+      console.log('Teacher record created');
+      res.redirect("/admin/man/teacher");
+    });
+  });
 });
 
 app.get("/admin/man/editStu/:id", (req, res) => {

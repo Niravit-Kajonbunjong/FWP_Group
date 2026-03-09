@@ -19,7 +19,7 @@
     <%- include("partials/mtbar") %>
         <div class="info">
             <div>
-                <img src="/public/img/bgpink.svg">
+                <img src="/img/bgpink.svg">
             </div>
             <div>
                 <form action="/admin/man/changeTea" method="get">
@@ -29,7 +29,7 @@
                     <input type="text" name="last" id="last" value="<%= data.last_name %>" required><br>
                     <label for="gender">เพศ</label><br>
                     <input type="text" name="gender" id="gender" value="<%= data.gender %>" readonly><br>
-                    <label for="DOB">ปี - เดือน - วัน เกิด</label><br>
+                    <label for="DOB">วัน - เดือน - ปี เกิด</label><br>
                     <input type="text" name="DOB" id="DOB" value="<%= data.birth_date %>" readonly><br>
                     <label for="tel">เบอร์โทรศัพท์</label><br>
                     <input type="tel" name="tel" id="tel" value="<%= data.phone %>"><br>
