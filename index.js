@@ -311,8 +311,6 @@ app.get("/regis/curriculum", regis_auth, (req, res) => {
     });
 });
 
-<<<<<<< Updated upstream
-=======
 app.post("/regis/add-subject", regis_auth, (req, res) => {
     const { course_code, subject_name, credits, course_type, room } = req.body;
     
@@ -344,7 +342,6 @@ app.post("/regis/add-subject", regis_auth, (req, res) => {
     });
 });
 
->>>>>>> Stashed changes
 app.get("/regis/edit/:id", regis_auth, (req, res) => {
     const userData = req.registration;
     const courseId = req.params.id;
