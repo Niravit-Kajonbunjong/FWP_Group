@@ -75,7 +75,10 @@
                                                 <h5 class="fw-bold m-0 text-dark"><%= subject.subject_name %></h5>
                                                 <span class="badge bg-light text-primary rounded-pill border"><%= subject.credits %> นก.</span>
                                             </div>
-                                            <div class="text-muted small mt-2">รหัสวิชา: <%= subject.course_code || subject.subject_id %></div>
+                                            <div class="text-muted small mt-2">
+                                                <span class="badge bg-secondary-subtle text-secondary fw-normal"><%= subject.course_type %></span>
+                                                <span class="ms-1">รหัส: <%= subject.course_code %></span>
+                                            </div>
                                             <div class="text-primary small fw-bold mt-1">
                                                 <i class="fa-solid fa-location-dot me-1"></i><%= subject.room || 'ยังไม่ระบุห้อง' %>
                                             </div>
@@ -125,10 +128,18 @@
                             <label class="small text-muted mb-1">ชื่อวิชา</label>
                             <input type="text" name="subject_name" class="form-control rounded-3" placeholder="เช่น Advanced Mathematics" required>
                         </div>
+                        <div class="mb-3">
+                            <label class="small text-muted mb-1">ประเภทวิชา</label>
+                            <select name="course_type" class="form-select rounded-3" required>
+                                <option value="M5-CORE">แกนกลาง ม.5 (M5-CORE)</option>
+                                <option value="M6-CORE">แกนกลาง ม.6 (M6-CORE)</option>
+                                <option value="ELECTIVE">วิชาเลือก (ELECTIVE)</option>
+                            </select>
+                        </div>
                         <div class="row">
                             <div class="col-6 mb-3">
                                 <label class="small text-muted mb-1">หน่วยกิต</label>
-                                <input type="number" name="credits" class="form-control rounded-3" value="3" required>
+                                <input type="number" name="credits" class="form-control rounded-3" value="3" step="0.5" required>
                             </div>
                             <div class="col-6 mb-3">
                                 <label class="small text-muted mb-1">ห้องเรียน</label>
