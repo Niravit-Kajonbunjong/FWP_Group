@@ -20,12 +20,13 @@
             <div class="bottom-wrapper">
 
                 <div class="sidebar-wrapper">
-
+                    
                     <%- include('partials/mlbar') %>
-
+                    
                 </div>
                 <div class="main-content">
-
+                    
+                    <%- include("partials/manInfo") %>
                     <div class="container mt-5">
                         <div class="d-flex justify-content-between align-items-center mb-4">
                             <div>
@@ -57,7 +58,7 @@
                                             <tr>
                                                 <td class="ps-4">
                                                     <div class="d-flex align-items-center">
-                                                        <img src="/public/img/<%= item.profile_image || 'default.png' %>"
+                                                        <img src="/img/<%= item.profile_image || 'default.png' %>"
                                                             class="rounded-circle me-3" width="40" height="40"
                                                             style="object-fit: cover;">
                                                         <div class="fw-bold">
@@ -111,7 +112,6 @@
             </div>
     </div>
 
-    <%- include("partials/manInfo") %>
 </body>
 
 </html>

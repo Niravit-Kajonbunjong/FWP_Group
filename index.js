@@ -9,7 +9,7 @@ app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js'));
 
 // Connect to SQLite database
-let db = new sqlite3.Database('dbCop.db', (err) => {
+let db = new sqlite3.Database('db.db', (err) => {
   if (err) {
     return console.error(err.message);
   }
