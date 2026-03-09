@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Profile</title>
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/index.css">
+    <link rel="stylesheet" href="/css/temp.css">
+    
+    <style>
+        
+    </style>
+</head>
+<body>
+
+        <div class="app-container">
+        
+        <%- include('partials/mtbar') %>
+
+        <div class="bottom-wrapper">
+            
+            <div class="sidebar-wrapper">
+                <%- include('partials/mlbar') %>
+            </div>
+
+            <div class="main-content">
+                <div class="content-container shadow-sm">
+                    <div class="row align-items-center">
+                        <div class="col-md-5 text-center mb-4 mb-md-0">
+                            <div class="profile-img-box">
+                                <img src="https://ui-avatars.com/api/?name=<%= user.first_name %>&background=FFDAC1&color=495057&size=128" 
+                                    alt="Profile" 
+                                    class="profile-img shadow-sm">
+                            </div>
+                        </div>
+
+                        <div class="col-md-7 ps-md-5">
+                            <div class="row">
+                                <div class="col-7">
+                                    <div class="info-label">ชื่อ - นามสกุล</div>
+                                    <div class="info-value"><%= user.first_name %> <%= user.last_name %></div>
+                                </div>
+                                <div class="col-5">
+                                    <div class="info-label">เพศ</div>
+                                    <div class="info-value"><%= user.gender %></div>
+                                </div>
+                                <div class="col-7">
+                                    <div class="info-label">รหัสฝ่ายทะเบียน</div>
+                                    <div class="info-value"><%= user.user_id %></div>
+                                </div>
+                                <div class="col-5">
+                                    <div class="info-label">อายุ</div>
+                                    <div class="info-value">
+                                        <% 
+                                        let age = '-'; 
+                                        if (user && user.birth_date) {
+                                                const birthDate = new Date(user.birth_date);
+                                                const today = new Date();
+                                                
+                                                age = today.getFullYear() - birthDate.getFullYear();
+                                                const m = today.getMonth() - birthDate.getMonth();
+                                                
+                                                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                                                    age--; 
+                                                }
+                                            }
+                                        %>
+                                        <%= age %>
+                                    </div>
+                                </div>
+                                <div class="col-7">
+                                    <div class="info-label">วันเกิด</div>
+                                    <div class="info-value"><%= user.birth_date %></div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="info-label">อีเมล</div>
+                                    <div class="info-value"><%= user.email %></div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="info-label">เบอร์โทร</div>
+                                    <div class="info-value"><%= user.phone %></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+</div>
+    </div>
+
+        </div> </div> </body>
+</html>

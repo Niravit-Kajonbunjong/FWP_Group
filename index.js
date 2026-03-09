@@ -62,7 +62,7 @@ app.post("/login", async(req, res) => {
                 if(results.role === 'teacher') {
                     return res.redirect('/home');
                 } else if (results.role === 'registration') {
-                    return res.redirect('/regis/curriculum'); 
+                    return res.redirect('/home');
                 } else if (results.role === 'student') {
                     return res.redirect('/student/home'); 
                 } else if (results.role === 'admin') {
@@ -285,6 +285,21 @@ app.post("/teacher/grading/:section_id", teacher_auth, (req, res) => {
     setTimeout(() => {
         res.redirect("/teacher/grading/" + sectionId);
     }, 500);
+});
+
+app.get("/home/regis", regis_auth, (req, res) => {
+    const userData = req.registration;
+
+    const sql = `
+        SELECT u.*, 'เจ้าหน้าที่ฝ่ายทะเบียน' as position
+        FROM User u
+        WHERE u.user_id = ?
+    `;
+
+    db.get(sql, [userData.id], (err, row) => {
+        if (err || !row) return res.status(404).send("ไม่พบข้อมูลเจ้าหน้าที่");
+        res.render("home", { user: row }); 
+    });
 });
 
 app.get("/regis/curriculum", regis_auth, (req, res) => {
