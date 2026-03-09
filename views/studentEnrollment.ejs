@@ -60,6 +60,13 @@ border:1px solid #e0e0e0;
 box-shadow:0 4px 15px rgba(0,0,0,0.05);
 }
 
+.table-scroll{
+max-height:350px;
+overflow-y:auto;
+border:1px solid #dee2e6;
+border-radius:6px;
+}
+
 </style>
 
 </head>
@@ -109,7 +116,7 @@ box-shadow:0 4px 15px rgba(0,0,0,0.05);
 </div>
 
 <!-- COURSE TABLE -->
-
+<div class="table-scroll">
 <table class="table table-bordered table-hover">
 
 <thead class="table-light">
@@ -155,7 +162,7 @@ box-shadow:0 4px 15px rgba(0,0,0,0.05);
 </tbody>
 
 </table>
-
+</div>
 <button class="btn btn-primary mt-3">
 Submit Enrollment
 </button>

@@ -156,14 +156,18 @@ app.get("/student/timetable", student_auth, (req, res) => {
         }
 
         const sqlSchedule = `
-WITH params AS (
-    SELECT st.student_id, h.grade_level, h.track_id
+WITH student_info AS (
+    SELECT 
+        st.student_id,
+        h.grade_level,
+        h.track_id
     FROM Student st
-    JOIN Homeroom h ON st.homeroom_id = h.homeroom_id
+    JOIN Homeroom h 
+        ON st.homeroom_id = h.homeroom_id
     WHERE st.student_id = ?
 )
 
--- CORE
+-- CORE (Morning)
 SELECT
     cs.schedule_day,
     cs.start_time,
@@ -171,25 +175,22 @@ SELECT
     cs.room,
     c.course_code,
     c.course_name,
-    c.credit_hours,
-    CASE cs.schedule_day
-        WHEN 'Monday' THEN 1
-        WHEN 'Tuesday' THEN 2
-        WHEN 'Wednesday' THEN 3
-        WHEN 'Thursday' THEN 4
-        WHEN 'Friday' THEN 5
-    END AS day_order
-FROM params p
-JOIN Course c ON c.grade_level = p.grade_level
-JOIN CourseSection cs ON cs.course_id = c.course_id
-JOIN Semester s ON cs.semester_id = s.semester_id
+    s.year,
+    s.term
+FROM student_info p
+JOIN Course c 
+    ON c.grade_level = p.grade_level
+JOIN CourseSection cs 
+    ON cs.course_id = c.course_id
+JOIN Semester s 
+    ON cs.semester_id = s.semester_id
 WHERE c.course_type = 'CORE'
-AND c.term_no = s.term
+AND cs.start_time < '12:00'
 AND s.is_active = 1
 
 UNION ALL
 
--- TRACK
+-- TRACK (Afternoon)
 SELECT
     cs.schedule_day,
     cs.start_time,
@@ -197,26 +198,23 @@ SELECT
     cs.room,
     c.course_code,
     c.course_name,
-    c.credit_hours,
-    CASE cs.schedule_day
-        WHEN 'Monday' THEN 1
-        WHEN 'Tuesday' THEN 2
-        WHEN 'Wednesday' THEN 3
-        WHEN 'Thursday' THEN 4
-        WHEN 'Friday' THEN 5
-    END
-FROM params p
-JOIN Course c ON c.track_id = p.track_id
-JOIN CourseSection cs ON cs.course_id = c.course_id
-JOIN Semester s ON cs.semester_id = s.semester_id
+    s.year,
+    s.term
+FROM student_info p
+JOIN Course c 
+    ON c.grade_level = p.grade_level
+    AND c.track_id = p.track_id
+JOIN CourseSection cs 
+    ON cs.course_id = c.course_id
+JOIN Semester s 
+    ON cs.semester_id = s.semester_id
 WHERE c.course_type = 'TRACK'
-AND c.grade_level = p.grade_level
-AND c.term_no = s.term
+AND cs.start_time >= '13:00'
 AND s.is_active = 1
 
 UNION ALL
 
--- ELECTIVE + CLUB
+-- ELECTIVE + CLUB (Afternoon)
 SELECT
     cs.schedule_day,
     cs.start_time,
@@ -224,24 +222,21 @@ SELECT
     cs.room,
     c.course_code,
     c.course_name,
-    c.credit_hours,
-    CASE cs.schedule_day
-        WHEN 'Monday' THEN 1
-        WHEN 'Tuesday' THEN 2
-        WHEN 'Wednesday' THEN 3
-        WHEN 'Thursday' THEN 4
-        WHEN 'Friday' THEN 5
-    END
-FROM params p
-JOIN Enrollment e ON e.student_id = p.student_id
-JOIN CourseSection cs ON cs.section_id = e.section_id
-JOIN Course c ON cs.course_id = c.course_id
-JOIN Semester s ON cs.semester_id = s.semester_id
+    s.year,
+    s.term
+FROM student_info p
+JOIN Enrollment e 
+    ON e.student_id = p.student_id
+JOIN CourseSection cs 
+    ON e.section_id = cs.section_id
+JOIN Course c 
+    ON cs.course_id = c.course_id
+JOIN Semester s 
+    ON cs.semester_id = s.semester_id
 WHERE c.course_type IN ('ELECTIVE','CLUB')
+AND cs.start_time >= '13:00'
 AND e.status = 'active'
 AND s.is_active = 1
-
-ORDER BY day_order, start_time;
 `;
 
         db.all(sqlSchedule, [user.student_id], (err, schedules) => {
@@ -313,12 +308,21 @@ db.all(
 `SELECT DISTINCT year FROM Semester ORDER BY year DESC`,
 (err, years)=>{
 
+db.get("SELECT * FROM User WHERE user_id = ?", [req.student.id], (err, user) => {
+
+if(err){
+console.error(err);
+return res.status(500).send("User error");
+}
+
 res.render("studentGrades",{
-user:req.student,
+user:user,
 grades:grades,
 years:years.map(y=>y.year),
 selectedYear:year,
 selectedTerm:term
+});
+
 });
 
 });
@@ -356,9 +360,18 @@ console.error(err);
 return res.status(500).send("Database error");
 }
 
+db.get("SELECT * FROM User WHERE user_id = ?", [req.student.id], (err, user) => {
+
+if(err){
+console.error(err);
+return res.status(500).send("User error");
+}
+
 res.render("studentEnrollment",{
-user:req.student,
+user:user,
 sections:sections
+});
+
 });
 
 });
@@ -392,8 +405,8 @@ return res.send("Student not found");
 }
 
 const insertSql = `
-INSERT INTO Enrollment (student_id, section_id, status)
-VALUES (?, ?, 'pending')
+INSERT INTO Enrollment (student_id, section_id, status, created_at)
+VALUES (?, ?, 'pending', datetime('now'))
 `;
 
 db.run(insertSql,[student.student_id,sectionId],(err)=>{
