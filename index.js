@@ -311,6 +311,40 @@ app.get("/regis/curriculum", regis_auth, (req, res) => {
     });
 });
 
+<<<<<<< Updated upstream
+=======
+app.post("/regis/add-subject", regis_auth, (req, res) => {
+    const { course_code, subject_name, credits, course_type, room } = req.body;
+    
+    // ค้นหา teacher_id และ semester_id ตัวอย่างมาใส่ก่อนเพื่อไม่ให้ติด NOT NULL Constraint
+    db.get("SELECT teacher_id FROM Teacher LIMIT 1", (err, teacher) => {
+        db.get("SELECT semester_id FROM Semester ORDER BY semester_id DESC LIMIT 1", (err, semester) => {
+            
+            db.serialize(() => {
+                db.run("BEGIN TRANSACTION");
+                
+                // 1. เพิ่มลงตาราง Course
+                const sqlCourse = `INSERT INTO Course (course_code, course_name, credit_hours, course_type) VALUES (?, ?, ?, ?)`;
+                db.run(sqlCourse, [course_code, subject_name, credits, course_type], function(err) {
+                    if (err) { db.run("ROLLBACK"); return res.status(500).send(err.message); }
+                    
+                    const newCourseId = this.lastID;
+                    // 2. เพิ่มลงตาราง CourseSection (เพื่อให้ปรากฏในหน้าแสดงผล)
+                    const sqlSection = `INSERT INTO CourseSection (course_id, teacher_id, semester_id, room, schedule_day, start_time, end_time, max_students) 
+                                       VALUES (?, ?, ?, ?, 'จันทร์', '08:00', '10:00', 40)`;
+                    
+                    db.run(sqlSection, [newCourseId, teacher.teacher_id, semester.semester_id, room], (err) => {
+                        if (err) { db.run("ROLLBACK"); return res.status(500).send(err.message); }
+                        db.run("COMMIT");
+                        res.redirect("/regis/curriculum");
+                    });
+                });
+            });
+        });
+    });
+});
+
+>>>>>>> Stashed changes
 app.get("/regis/edit/:id", regis_auth, (req, res) => {
     const userData = req.registration;
     const courseId = req.params.id;
