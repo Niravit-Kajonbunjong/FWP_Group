@@ -10,8 +10,8 @@ const app = express();
 app.use('/css', express.static(__dirname + '/node_modules/bootstrap/dist/css'));
 app.use('/js', express.static(__dirname + '/node_modules/bootstrap/dist/js'));
 
-// const { teacher_auth }  = require('./middleware/auth.js');
-const { teacher_auth,student_auth,admin_auth,registration_auth }  = require('./middleware/auth.js');
+// เรียกใช้ Middleware จากไฟล์ auth.js
+const { teacher_auth, student_auth, admin_auth, regis_auth } = require('./middleware/auth.js');
 app.use(cookieParser());
 
 // Connect to SQLite database
@@ -25,14 +25,19 @@ let db = new sqlite3.Database('db.db', (err) => {
 app.use(express.static('public'));
 app.set('view engine', 'ejs');
 
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 const kate = "wowzaeiei";
+
+const generateAccessToken = (payload) => {
+    return jwt.sign(payload, kate, { expiresIn: '7d' });
+}
+
 app.post("/login", async(req, res) => {
     try {
         const { email, password } = req.body;
-        console.log("email: ", email)
+        console.log("email: ", email);
         const sql = 'SELECT * FROM User WHERE email = ? AND password = ?';
         db.get(sql, [email, password], async function (err, results) {
             if (err) {
@@ -53,9 +58,16 @@ app.post("/login", async(req, res) => {
             jwt.sign(payload, kate, { expiresIn: '7d' }, (err, token) => {
                 if (err) throw err;
                 res.cookie('accessToken', accessToken, { httpOnly: true, secure: true });
+                
                 if(results.role === 'teacher') {
                     return res.redirect('/home');
-                }else {
+                } else if (results.role === 'registration') {
+                    return res.redirect('/regis/curriculum'); 
+                } else if (results.role === 'student') {
+                    return res.redirect('/student/home'); 
+                } else if (results.role === 'admin') {
+                    return res.redirect('/admin/dashboard'); 
+                } else {
                     return res.redirect('/');
                 }
             });
@@ -67,10 +79,6 @@ app.post("/login", async(req, res) => {
     }
 });
 
-const generateAccessToken = (payload) => {
-    return jwt.sign(payload, kate, { expiresIn: '7d' })
-}
-
 app.post('/logout', (req, res) => {
     res.cookie('accessToken', '', { expires: new Date(0), httpOnly: true });
     res.redirect('/');
@@ -79,42 +87,24 @@ app.post('/logout', (req, res) => {
 app.get("/", (req, res) => {
   res.render("login"); 
 });
-//teacher_auth => student_auth
+
 app.get("/home", teacher_auth, (req, res) => {
-    
     const userData = req.teacher;
-    // const userData = req.student;
 
     const sql = `
         SELECT 
-            u.user_id,
-            u.email,
-            u.role,
-            u.gender,
-            u.first_name,
-            u.last_name,
-            u.birth_date,
-            u.phone,
-            u.profile_image,
-            t.teacher_code,
-            t.education_level
+            u.user_id, u.email, u.role, u.gender, u.first_name, u.last_name,
+            u.birth_date, u.phone, u.profile_image, t.teacher_code, t.education_level
         FROM User u
         LEFT JOIN Teacher t ON u.user_id = t.user_id
         WHERE u.user_id = ?
     `;
 
     db.get(sql, [userData.id], (err, row) => {
-        if (err) {
-            console.error(err.message);
-            return res.status(500).send("เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
-        }
-        
-        if (!row) {
-            return res.status(404).send("ไม่พบข้อมูลผู้ใช้นี้ในระบบ");
-        }
+        if (err) return res.status(500).send("เกิดข้อผิดพลาดในการเชื่อมต่อฐานข้อมูล");
+        if (!row) return res.status(404).send("ไม่พบข้อมูลผู้ใช้นี้ในระบบ");
 
         row.avatar = row.profile_image;
-
         res.render("home", { user: row }); 
     });
 });
@@ -127,13 +117,7 @@ const getActiveSemester = (callback) => {
 
 app.get("/teacher/schedule", teacher_auth, (req, res) => {
     const userData = req.teacher;
-
-    const sqlUser = `
-        SELECT u.*, t.teacher_id 
-        FROM User u 
-        LEFT JOIN Teacher t ON u.user_id = t.user_id 
-        WHERE u.user_id = ?
-    `;
+    const sqlUser = `SELECT u.*, t.teacher_id FROM User u LEFT JOIN Teacher t ON u.user_id = t.user_id WHERE u.user_id = ?`;
 
     db.get(sqlUser, [userData.id], (err, user) => {
         if (err || !user) return res.status(500).send("ไม่พบข้อมูลผู้ใช้");
@@ -146,9 +130,7 @@ app.get("/teacher/schedule", teacher_auth, (req, res) => {
                 FROM CourseSection cs
                 JOIN Course c ON cs.course_id = c.course_id
                 JOIN Semester s ON cs.semester_id = s.semester_id
-                WHERE cs.teacher_id = ? 
-                AND cs.is_active = 1 
-                AND s.semester_id = ?
+                WHERE cs.teacher_id = ? AND cs.is_active = 1 AND s.semester_id = ?
                 ORDER BY CASE cs.schedule_day 
                     WHEN 'Monday' THEN 1 WHEN 'Tuesday' THEN 2 
                     WHEN 'Wednesday' THEN 3 WHEN 'Thursday' THEN 4 
@@ -187,9 +169,7 @@ app.get("/teacher/grading", teacher_auth, (req, res) => {
 
                 db.all(sqlCourses, [teacher.teacher_id, activeSem.semester_id], (err, courses) => {
                     res.render("teacherCourseList", { 
-                        user: user, 
-                        courses: courses,
-                        currentSemester: activeSem 
+                        user: user, courses: courses, currentSemester: activeSem 
                     });
                 });
             });
@@ -197,27 +177,31 @@ app.get("/teacher/grading", teacher_auth, (req, res) => {
     });
 });
 
-
-app.get("/teacher/grading/:section_id",teacher_auth, (req, res) => {
+app.get("/teacher/grading/:section_id", teacher_auth, (req, res) => {
     const sectionId = req.params.section_id;
     const userData = req.teacher;
 
+    console.log("📌 ค่า Section ID ที่ได้รับคือ:", sectionId);
     const sqlStudents = `
-        SELECT 
-            s.student_id, 
-            s.student_code, 
-            u.first_name, 
-            u.last_name,
-            g.assignment_score, 
-            g.midterm_score, 
-            g.final_score, 
-            g.grade_letter
-        FROM Enrollment e
-        JOIN Student s ON e.student_id = s.student_id
+        SELECT s.student_id, s.student_code, u.first_name, u.last_name,
+            g.assignment_score, g.midterm_score, g.final_score, g.grade_letter
+        FROM Student s
         JOIN User u ON s.user_id = u.user_id
-        LEFT JOIN Grade g ON s.student_id = g.student_id AND g.section_id = e.section_id
-        WHERE e.section_id = ? 
-        AND e.status = 'active' 
+        JOIN CourseSection cs ON cs.section_id = ?
+        JOIN Course c ON cs.course_id = c.course_id
+        LEFT JOIN Grade g ON s.student_id = g.student_id AND g.section_id = cs.section_id
+        WHERE (
+            (c.course_type = 'CORE' AND (
+                (c.course_code LIKE '%10_' AND s.student_code LIKE '68%') OR -- ม.4
+                (c.course_code LIKE '%20_' AND s.student_code LIKE '67%') OR -- ม.5
+                (c.course_code LIKE '%30_' AND s.student_code LIKE '66%')    -- ม.6
+            ))
+            OR 
+            -- กรณีวิชา TRACK / ELECTIVE: ดึงจากตาราง Enrollment ตามปกติ
+            (c.course_type IN ('TRACK', 'ELECTIVE', 'CLUB') AND s.student_id IN (
+                SELECT student_id FROM Enrollment WHERE section_id = cs.section_id
+            ))
+        )
         ORDER BY s.student_code ASC
     `;
 
@@ -230,29 +214,34 @@ app.get("/teacher/grading/:section_id",teacher_auth, (req, res) => {
     `;
 
     db.get("SELECT * FROM User WHERE user_id = ?", [userData.id], (err, user) => {
+        if (err) return res.send("❌ DB User Error: " + err.message);
         if (user) user.avatar = user.profile_image;
 
         db.get(sqlCourse, [sectionId], (err, course) => {
-            if (err || !course) return res.status(404).send("ไม่พบรายวิชานี้");
+            if (err) return res.send("❌ DB Course Error: " + err.message);
+            if (!course) return res.status(404).send("ไม่พบรายวิชานี้");
 
             db.all(sqlStudents, [sectionId], (err, students) => {
-                if (err) {
-                    console.error(err);
-                    return res.status(500).send("Internal Server Error");
+                if (err) return res.send("❌ DB Students Error: " + err.message);
+                
+                console.log(`✅ ดึงข้อมูลสำเร็จ! เจอนักเรียนใน Section ${sectionId} จำนวน: ${students ? students.length : 0} คน`);
+                
+                if (students && students.length > 0) {
+                    console.log("👉 ตัวอย่างข้อมูลนักเรียนคนแรก:", students[0]);
                 }
-                console.log("เช็คข้อมูลนักเรียนคนแรก:", students[0]);
+                
                 res.render("teacherGrading", { 
                     user: user || {}, 
-                    sectionId: sectionId,
-                    course: course, 
-                    students: students
+                    sectionId: sectionId, 
+                    course: course || {}, 
+                    students: students || []
                 });
             });
         });
     });
 });
 
-app.post("/teacher/grading/:section_id",teacher_auth, (req, res) => {
+app.post("/teacher/grading/:section_id", teacher_auth, (req, res) => {
     const userData = req.teacher;
     const sectionId = req.params.section_id;
     let studentIds = req.body.student_id;
@@ -271,7 +260,6 @@ app.post("/teacher/grading/:section_id",teacher_auth, (req, res) => {
 
     for (let i = 0; i < studentIds.length; i++) {
         let sId = studentIds[i];
-        
         let asn = (assigns[i] !== "" && assigns[i] !== undefined) ? parseFloat(assigns[i]) : 0;
         let mid = (midterms[i] !== "" && midterms[i] !== undefined) ? parseFloat(midterms[i]) : 0;
         let fin = (finals[i] !== "" && finals[i] !== undefined) ? parseFloat(finals[i]) : 0;
@@ -299,8 +287,109 @@ app.post("/teacher/grading/:section_id",teacher_auth, (req, res) => {
     }, 500);
 });
 
-app.listen(port, () => {
-  console.log(`Starting server at port ${port}`);
+app.get("/regis/curriculum", regis_auth, (req, res) => {
+    const userData = req.registration;
+    const searchQuery = req.query.search || '';
+    db.get("SELECT *, profile_image AS avatar FROM User WHERE user_id = ?", [userData.id], (err, user) => {
+        const sql = `
+            SELECT 
+                c.course_id AS subject_id, c.course_code, c.course_name AS subject_name, 
+                c.credit_hours AS credits, cs.room, cs.schedule_day, cs.max_students,
+                u_t.first_name || ' ' || u_t.last_name AS teacher_name
+            FROM Course c
+            LEFT JOIN CourseSection cs ON c.course_id = cs.course_id
+            LEFT JOIN Teacher t ON cs.teacher_id = t.teacher_id
+            LEFT JOIN User u_t ON t.user_id = u_t.user_id
+            WHERE c.course_name LIKE ? OR c.course_code LIKE ?
+            GROUP BY c.course_id`;
+        
+        db.all(sql, [`%${searchQuery}%`, `%${searchQuery}%`], (err, subjects) => {
+            res.render("subjects", { 
+                user: user, subjects: subjects || [], searchQuery: searchQuery 
+            });
+        });
+    });
+});
+
+app.get("/regis/edit/:id", regis_auth, (req, res) => {
+    const userData = req.registration;
+    const courseId = req.params.id;
+    db.get(`SELECT c.*, cs.room, cs.schedule_day, cs.start_time, cs.end_time, cs.max_students, cs.teacher_id 
+            FROM Course c 
+            LEFT JOIN CourseSection cs ON c.course_id = cs.course_id 
+            WHERE c.course_id = ? LIMIT 1`, [courseId], (err, subject) => {
+        db.get("SELECT *, profile_image AS avatar FROM User WHERE user_id = ?", [userData.id], (err, user) => {
+            db.all("SELECT t.teacher_id, u.first_name, u.last_name FROM Teacher t JOIN User u ON t.user_id = u.user_id", (err, teachers) => {
+                res.render("edit_subject", { 
+                    user: user, subject: subject || {}, teachers: teachers || []
+                });
+            });
+        });
+    });
+});
+
+app.post("/regis/update-subject/:id", regis_auth, (req, res) => {
+    const { course_name, credit_hours, description, teacher_id, schedule_day, start_time, end_time, room, max_students } = req.body;
+    db.serialize(() => {
+        db.run("UPDATE Course SET course_name = ?, credit_hours = ?, description = ? WHERE course_id = ?", [course_name, credit_hours, description, req.params.id]);
+        db.run("UPDATE CourseSection SET teacher_id = ?, schedule_day = ?, start_time = ?, end_time = ?, room = ?, max_students = ? WHERE course_id = ?", [teacher_id, schedule_day, start_time, end_time, room, max_students, req.params.id], () => {
+            res.redirect("/regis/curriculum");
+        });
+    });
+});
+
+app.get("/regis/enrollment", regis_auth, (req, res) => {
+    const userData = req.registration;
+    db.get("SELECT *, profile_image AS avatar FROM User WHERE user_id = ?", [userData.id], (err, user) => {
+        const sqlRequests = `
+            SELECT 
+                e.enrollment_id, e.status, u_student.first_name AS student_fname, 
+                u_student.last_name AS student_lname, s.student_code, 
+                c.course_code, c.course_name, cs.room
+            FROM ENROLLMENT e
+            INNER JOIN Student s ON e.student_id = s.student_id
+            INNER JOIN User u_student ON s.user_id = u_student.user_id
+            INNER JOIN CourseSection cs ON e.section_id = cs.section_id
+            INNER JOIN Course c ON cs.course_id = c.course_id
+            ORDER BY e.enrollment_id DESC`;
+
+        db.all(sqlRequests, [], (err, rows) => {
+            if (err) return res.status(500).send("SQL Error: " + err.message);
+            res.render("approve_registration", { 
+                user: user, requests: rows || [] 
+            });
+        });
+    });
+});
+
+app.post("/regis/update-status/:id", regis_auth, (req, res) => {
+    const { status } = req.body;
+    
+    const adminId = req.registration.id; 
+    
+    const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' });
+
+    db.run("UPDATE ENROLLMENT SET status = ?, approved_by = ?, approved_at = ? WHERE enrollment_id = ?", 
+        [status, adminId, now, req.params.id], (err) => {
+        if (err) return res.status(500).send(err.message);
+        res.redirect("/regis/enrollment");
+    });
+});
+
+app.post("/regis/delete-enrollment/:id", regis_auth, (req, res) => {
+    db.run("DELETE FROM ENROLLMENT WHERE enrollment_id = ?", [req.params.id], (err) => {
+        if (err) return res.status(500).send(err.message);
+        res.redirect("/regis/enrollment");
+    });
+});
+
+app.post("/regis/delete/:id", regis_auth, (req, res) => {
+    db.serialize(() => {
+        db.run("DELETE FROM CourseSection WHERE course_id = ?", [req.params.id]);
+        db.run("DELETE FROM Course WHERE course_id = ?", [req.params.id], () => {
+            res.redirect("/regis/curriculum");
+        });
+    });
 });
 
 app.listen(port, () => {
