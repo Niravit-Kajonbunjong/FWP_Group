@@ -4,52 +4,81 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Teacher Information</title>
+            <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/decadMan.css">
     <style>
-        .cont {
-            background-color: rgba(208, 208, 208, 0.451);
-            width:70%;
-            padding:1% 5%;
-            margin:3% auto;
-        }
-
-        table {
-            width: 90%;
-            text-align: left;
-            margin: auto;
-        }
-
     </style>
 </head>
 <body>
     <%- include("partials/mtbar") %>
     <%- include("partials/manInfo") %>
-    <div class="cont">
-        <h2>Teacher number (<%= total %>)</h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>ชื่อ นามสกุล</th>
-                    <th>รหัสประจำตัว</th>
-                    <th>อีเมล</th>
-                    <th>เบอร์โทร</th>
-                    <th>สถานะ</th>
-                    <th style="text-align: center;"><a href="/admin/man/addTea">เพิ่มข้อมูล</a></th>
-                </tr>
-            </thead>
-            <tbody><!-- must add data rater -->
-                <% data.forEach((item)=>{ %>
-                <tr>
-                    <td><%= item.first_name %>  <%= item.last_name %></td>
-                    <td><%= item.teacher_id %></td>
-                    <td><%= item.email %></td>
-                    <td><%= item.phone %></td>
-                    <td><%= item.is_active %></td>
-                    <td><a href="/admin/man/editTea/<%= item.user_id %>">เปลี่ยนแปลงข้อมูล</a> <a href="/admin/man/delTea/<%= item.user_id %>">ลบข้อมูล</a></td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
+    <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">รายชื่ออาจารย์</h2>
+            <p class="text-muted">จำนวนอาจารย์ทั้งหมด: <span class="badge bg-purple rounded-pill text-white"><%= total %></span></p>
+        </div>
+        <a href="/admin/man/addTea" class="btn btn-purple shadow-sm rounded-pill px-4 text-white">
+            <i class="bi bi-person-plus-fill"></i> เพิ่มข้อมูลอาจารย์
+        </a>
     </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">ชื่อ - นามสกุล</th>
+                        <th>รหัสประจำตัว</th>
+                        <th>อีเมล</th>
+                        <th>เบอร์โทร</th>
+                        <th>สถานะ</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% data.forEach((item) => { %>
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <img src="/img/<%= item.profile_imgae || 'default.png' %>" 
+                                     class="rounded-circle me-3 border shadow-sm" width="40" height="40">
+                                <div class="fw-bold"><%= item.first_name %> <%= item.last_name %></div>
+                            </div>
+                        </td>
+                        <td><code class="text-purple fw-bold"><%= item.teacher_code %></code></td>
+                        <td><span class="text-muted"><%= item.email %></span></td>
+                        <td><%= item.phone %></td>
+                        <td>
+                            <% if (item.is_active == 1) { %>
+                                <span class="badge badge-active rounded-pill px-3 py-2">
+                                    <i class="bi bi-check-circle-fill me-1"></i> ยังคงปฏิบัติหน้าที่
+                                </span>
+                            <% } else { %>
+                                <span class="badge badge-inactive rounded-pill px-3 py-2">
+                                    <i class="bi bi-x-circle-fill me-1"></i> ออกจากหน้าที่
+                                </span>
+                            <% } %>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="/admin/man/editTea/<%= item.user_id %>" class="btn btn-sm btn-outline-purple rounded-pill me-2">
+                                    แก้ไข
+                                </a>
+                                <a href="/admin/man/delTea/<%= item.user_id %>" 
+                                   class="btn btn-sm btn-outline-danger rounded-pill"
+                                   onclick="return confirm('คุณแน่ใจหรือไม่ว่าต้องการลบข้อมูลอาจารย์ท่านนี้?')">
+                                    ลบ
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 </body>
 </html>

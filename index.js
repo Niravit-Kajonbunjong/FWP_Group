@@ -60,7 +60,7 @@ app.get("/admin/man/student", (req, res) => {
       console.log(err.message);
     }
 //    console.log(rows); //to watch data
-    res.render('adManStu', { data: rows , total: rows.length});
+    res.render('adManStu', { data: rows , total: rows.length, active: 'student'});
   });
 });
 
@@ -75,7 +75,7 @@ app.get("/admin/man/teacher", (req, res) => {
       console.log(err.message);
     }
 //    console.log(rows); //to watch data
-    res.render('adManTea', { data: rows , total: rows.length});
+    res.render('adManTea', { data: rows , total: rows.length, active: 'teacher'});
   });
 });
 
@@ -159,35 +159,36 @@ app.get("/admin/man/editStu/:id", (req, res) => {
   });
 });
 
-app.get("/admin/man/changeStu", (req, res) => {
-  let { first, last, gender, DOB, tel, ID, email, room, status} = req.query;
-  const chUser = `UPDATE User
-  SET first_name = ?, last_name = ?, phone = ?, is_active = ?
-  WHERE email = ${email};`;
-  
-  let active = 1;
-  if (status != 'active') active = 0;
+app.get("/admin/man/changeStu", (req, res) => { // fix update student logic
+    let { first, last, gender, DOB, tel, ID, email, room, status } = req.query;
+    
+    let active = (status === 'active') ? 1 : 0;
 
-  db.run(chUser, [first, last, tel, active], (err) => { 
-    if (err) { 
-      return console.error('Error change user data:', err.message); 
-    } 
-    console.log('User table changed data successful'); 
-  });
+    const chUser = `UPDATE User 
+                    SET first_name = ?, last_name = ?, phone = ?, is_active = ? 
+                    WHERE email = ?`;
+    
+    db.run(chUser, [first, last, tel, active, email], (err) => { 
+        if (err) { 
+            console.error('Error changing user data:', err.message);
+            return res.status(500).send("Update failed");
+        } 
+        console.log('User table updated successfully');
 
-  const chStu = `UPDATE Student
-  SET homeroom_id = ?, student_status = ?
-  WHERE student_code = ${ID};`;
+        const chStu = `UPDATE Student 
+                       SET homeroom_id = ?, student_status = ? 
+                       WHERE student_code = ?`;
 
-  db.run(chStu, [room, status], (err) => { 
-    if (err) { 
-      return console.error('Error change student data:', err.message); 
-    } 
-    console.log('Student table changed data successful'); 
-  });
+        db.run(chStu, [room, status, ID], (err) => { 
+            if (err) { 
+                console.error('Error changing student data:', err.message);
+                return res.status(500).send("Update failed");
+            } 
+            console.log('Student table updated successfully'); 
 
-  res.redirect('/admin/man/student');
-
+            res.redirect('/admin/man/student');
+        });
+    });
 });
 
 app.get("/admin/man/delStu/:id", (req, res) => {
@@ -230,32 +231,21 @@ app.get("/admin/man/editTea/:id", (req, res) => {
   });
 });
 
-app.get("/admin/man/changeTea", (req, res) => {
-  let { first, last, gender, DOB, tel, ID, email, edLev, status} = req.query;
-  const chUser = `UPDATE User
-  SET first_name = ?, last_name = ?, phone = ?, is_active = ?
-  WHERE email = ${email};`;
+app.get("/admin/man/changeTea", (req, res) => { //fix update teacher logic
+    let { first, last, tel, ID, email, edLev, status } = req.query;
 
-  db.run(chUser, [first, last, tel, status], (err) => { 
-    if (err) { 
-      return console.error('Error change user data:', err.message); 
-    } 
-    console.log('User table changed data successful'); 
-  });
+    const sqlUser = `UPDATE User SET first_name = ?, last_name = ?, phone = ?, is_active = ? WHERE email = ?`;
+    
+    db.run(sqlUser, [first, last, tel, status, email], function(err) {
+        if (err) return console.error(err.message);
 
-  const chStu = `UPDATE Teacher
-  SET education_level = ?, is_active = ?
-  WHERE teacher_code = ${ID};`;
-
-  db.run(chStu, [edLev, status], (err) => { 
-    if (err) { 
-      return console.error('Error change teacher data:', err.message); 
-    } 
-    console.log('Teacher table changed data successful'); 
-  });
-
-  res.redirect('/admin/man/teacher');
-
+        const sqlTea = `UPDATE Teacher SET education_level = ?, is_active = ? WHERE teacher_code = ?`;
+        db.run(sqlTea, [edLev, status, ID], function(err) {
+            if (err) return console.error(err.message);
+            
+            res.redirect('/admin/man/teacher');
+        });
+    });
 });
 
 app.get("/admin/man/delTea/:id", (req, res) => {
@@ -274,7 +264,7 @@ app.get("/admin/man/delTea/:id", (req, res) => {
     if (err) {
       console.log(err.message);
     }
-    console.log(`Row(s) in student table has been deleted.`);
+    console.log(`Row(s) in teacher table has been deleted.`);
   });
 
   res.redirect('/admin/man/teacher');

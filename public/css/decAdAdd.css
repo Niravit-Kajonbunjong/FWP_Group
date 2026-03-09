@@ -18,7 +18,6 @@ body {
     margin-bottom: 8px;
 }
 
-/* Matching the blue-ish input style from your image */
 .form-control, .form-select {
     border: 1.5px solid #dce1ff; 
     border-radius: 8px;

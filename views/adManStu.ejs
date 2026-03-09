@@ -4,52 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Student Information</title>
+        <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <script src="/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="/css/decadMan.css">
     <style>
-        .cont {
-            background-color: rgba(208, 208, 208, 0.451);
-            width:70%;
-            padding:1% 5%;
-            margin:3% auto;
-        }
-
-        table {
-            width: 90%;
-            text-align: left;
-            margin: auto;
-        }
-
     </style>
 </head>
 <body>
     <%- include("partials/mtbar") %>
     <%- include("partials/manInfo") %>
-    <div class="cont">
-        <h2>Student number (<%= total %>)</h2>
-
-        <table>
-            <thead>
-                <tr>
-                    <th>ชื่อ นามสกุล</th>
-                    <th>รหัสประจำตัว</th>
-                    <th>อีเมล</th>
-                    <th>เบอร์โทร</th>
-                    <th>สถานะ</th>
-                    <th style="text-align: center;"><a href="/admin/man/addStu">เพิ่มข้อมูล</a></th>
-                </tr>
-            </thead>
-            <tbody>
-                <% data.forEach((item)=>{ %>
-                <tr>
-                    <td><%= item.first_name %>  <%= item.last_name %></td>
-                    <td><%= item.student_id %></td>
-                    <td><%= item.email %></td>
-                    <td><%= item.phone %></td>
-                    <td><%= item.student_status %></td>
-                    <td><a href="/admin/man/editStu/<%= item.user_id %>">เปลี่ยนแปลงข้อมูล</a> <a href="/admin/man/delStu/<%= item.user_id %>">ลบข้อมูล</a></td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
+    <div class="container mt-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-0">รายชื่อนักเรียน</h2>
+            <p class="text-muted">จำนวนนักเรียนทั้งหมด: <span class="badge bg-primary rounded-pill"><%= total %></span></p>
+        </div>
+        <a href="/admin/man/addStu" class="btn btn-primary shadow-sm rounded-pill px-4">
+            <i class="bi bi-plus-lg"></i> เพิ่มข้อมูลนักเรียน
+        </a>
     </div>
+
+    <div class="card border-0 shadow-sm" style="border-radius: 15px; overflow: hidden;">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4">ชื่อ - นามสกุล</th>
+                        <th>รหัสประจำตัว</th>
+                        <th>อีเมล</th>
+                        <th>เบอร์โทร</th>
+                        <th>สถานะ</th>
+                        <th class="text-center">จัดการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% data.forEach((item) => { %>
+                    <tr>
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center">
+                                <img src="/public/img/<%= item.profile_image || 'default.png' %>" 
+                                     class="rounded-circle me-3" width="40" height="40" style="object-fit: cover;">
+                                <div class="fw-bold"><%= item.first_name %> <%= item.last_name %></div>
+                            </div>
+                        </td>
+                        <td><code class="text-dark fw-bold"><%= item.student_code %></code></td>
+                        <td><span class="text-muted"><%= item.email %></span></td>
+                        <td><%= item.phone %></td>
+                        <td>
+                            <% 
+                                let statusClass = 'bg-success';
+                                if(item.student_status === 'rest') statusClass = 'bg-warning text-dark';
+                                if(item.student_status === 'drop') statusClass = 'bg-danger';
+                                if(item.student_status === 'graduate') statusClass = 'bg-info text-dark';
+                            %>
+                            <span class="badge <%= statusClass %> rounded-pill px-3 py-2">
+                                <% let message = item.student_status === 'active' || 'rest' ? 'ยังคงศึกษาอยู่ที่นี่' : 'ไม่ได้ศึกษาอยู่ที่นี่' %>
+                                <%= message %>
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group">
+                                <a href="/admin/man/editStu/<%= item.user_id %>" class="btn btn-sm btn-outline-primary rounded-pill me-2">
+                                    แก้ไข
+                                </a>
+                                <a href="/admin/man/delStu/<%= item.user_id %>" 
+                                   class="btn btn-sm btn-outline-danger rounded-pill"
+                                   onclick="return confirm('ยืนยันการลบข้อมูล?')">
+                                    ลบ
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 </body>
 </html>
