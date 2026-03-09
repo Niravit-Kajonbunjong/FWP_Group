@@ -11,72 +11,98 @@
 </head>
 
 <body>
-    <%- include("partials/mtbar") %>
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="form-card shadow-lg p-5 bg-white" style="border-radius: 20px; max-width: 800px; width: 100%;">
-        <h3 class="text-center mb-4 fw-bold" style="color: #333;">เพิ่มข้อมูลอาจารย์ (Add Teacher)</h3>
-        
-        <form action="/admin/man/saveTea" method="get">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="first" class="form-label">ชื่อ</label>
-                    <input type="text" class="form-control rounded-pill" name="first" id="first" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="last" class="form-label">นามสกุล</label>
-                    <input type="text" class="form-control rounded-pill" name="last" id="last" required>
-                </div>
-            </div>
+    <div class="app-container">
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="gender" class="form-label">เพศ</label>
-                    <select class="form-select rounded-pill" name="gender" id="gender" required>
-                        <option value="male" selected>ชาย</option>
-                        <option value="female">หญิง</option>
-                    </select>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="DOB" class="form-label">วัน - เดือน - ปี เกิด</label>
-                    <input type="date" class="form-control rounded-pill" name="DOB" id="DOB" required>
-                </div>
-            </div>
+        <%- include('partials/mtbar') %>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="email" class="form-label">อีเมล</label>
-                    <input type="email" class="form-control rounded-pill" name="email" id="email" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="tel" class="form-label">เบอร์โทรศัพท์</label>
-                    <input type="tel" class="form-control rounded-pill" name="tel" id="tel">
-                </div>
-            </div>
+            <div class="bottom-wrapper">
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label for="ID" class="form-label">รหัสประจำตัวอาจารย์</label>
-                    <input type="text" class="form-control rounded-pill" name="ID" id="ID" required>
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="edLev" class="form-label">วุฒิการศึกษา</label>
-                    <input type="text" class="form-control rounded-pill" name="edLev" id="edLev" placeholder="เช่น ปริญญาโท">
-                </div>
-            </div>
+                <div class="sidebar-wrapper">
 
-            <div class="mb-4">
-                <label for="password" class="form-label">รหัสผ่าน (Password)</label>
-                <input type="password" class="form-control rounded-pill" name="password" id="password" required>
-            </div>
+                    <%- include('partials/mlbar') %>
 
-            <div class="row justify-content-center">
-                <div class="col-md-4 mb-4">
-                    <input type="submit" class="btn btn-primary px-5" value="ยืนยันการเพิ่มข้อมูล">
+                </div>
+                <div class="main-content">
+
+                    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+                        <div class="form-card shadow-lg p-5 bg-white"
+                            style="border-radius: 20px; max-width: 800px; width: 100%;">
+                            <h3 class="text-center mb-4 fw-bold" style="color: #333;">เพิ่มข้อมูลอาจารย์ (Add Teacher)
+                            </h3>
+
+                            <form action="/admin/man/saveTea" method="get">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="first" class="form-label">ชื่อ</label>
+                                        <input type="text" class="form-control rounded-pill" name="first" id="first"
+                                            required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="last" class="form-label">นามสกุล</label>
+                                        <input type="text" class="form-control rounded-pill" name="last" id="last"
+                                            required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="gender" class="form-label">เพศ</label>
+                                        <select class="form-select rounded-pill" name="gender" id="gender" required>
+                                            <option value="male" selected>ชาย</option>
+                                            <option value="female">หญิง</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="DOB" class="form-label">วัน - เดือน - ปี เกิด</label>
+                                        <input type="date" class="form-control rounded-pill" name="DOB" id="DOB"
+                                            required>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="email" class="form-label">อีเมล</label>
+                                        <input type="email" class="form-control rounded-pill" name="email" id="email"
+                                            required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="tel" class="form-label">เบอร์โทรศัพท์</label>
+                                        <input type="tel" class="form-control rounded-pill" name="tel" id="tel">
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="ID" class="form-label">รหัสประจำตัวอาจารย์</label>
+                                        <input type="text" class="form-control rounded-pill" name="ID" id="ID" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="edLev" class="form-label">วุฒิการศึกษา</label>
+                                        <input type="text" class="form-control rounded-pill" name="edLev" id="edLev"
+                                            placeholder="เช่น ปริญญาโท">
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label for="password" class="form-label">รหัสผ่าน (Password)</label>
+                                    <input type="password" class="form-control rounded-pill" name="password"
+                                        id="password" required>
+                                </div>
+
+                                <div class="row justify-content-center">
+                                    <div class="col-md-4 mb-4">
+                                        <input type="submit" class="btn btn-primary px-5" value="ยืนยันการเพิ่มข้อมูล">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+
                 </div>
             </div>
-        </form>
     </div>
-</div>
+
 </body>
 
 </html>

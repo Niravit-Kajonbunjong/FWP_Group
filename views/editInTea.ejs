@@ -5,91 +5,130 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Teacher Information</title>
-        <link rel="stylesheet" href="/css/decAdEd.css">
-        <link href="/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/css/decAdEd.css">
+    <link href="/css/bootstrap.min.css" rel="stylesheet">
     <script src="/js/bootstrap.bundle.min.js"></script>
     <style>
     </style>
 </head>
 
 <body>
-    <%- include("partials/mtbar") %>
-        <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light py-5">
-    <div class="main-card shadow-lg bg-white">
-        <div class="row g-0">
-            <div class="col-md-4 d-flex flex-column align-items-center justify-content-center border-end bg-light p-4 rounded-start">
-                <div class="profile-img-container shadow">
-                    <img src="/img/bgpink.svg" alt="Profile" class="img-fluid">
+    <div class="app-container">
+
+        <%- include('partials/mtbar') %>
+
+            <div class="bottom-wrapper">
+
+                <div class="sidebar-wrapper">
+
+                    <%- include('partials/mlbar') %>
+
                 </div>
-                <h4 class="mt-3 fw-bold"><%= data.first_name %> <%= data.last_name %></h4>
-                <p class="text-muted small text-uppercase">Teacher ID: <%= data.teacher_code %></p>
-            </div>
+                <div class="main-content">
 
-            <div class="col-md-8 p-5">
-                <h2 class="mb-4 fw-bold text-primary">แก้ไขข้อมูลอาจารย์</h2>
-                <form action="/admin/man/changeTea" method="get">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="first" class="form-label">ชื่อ</label>
-                            <input type="text" class="form-control" name="first" id="first" value="<%= data.first_name %>" required>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="last" class="form-label">นามสกุล</label>
-                            <input type="text" class="form-control" name="last" id="last" value="<%= data.last_name %>" required>
+                    <div class="d-flex justify-content-center align-items-center min-vh-100 bg-light py-5">
+                        <div class="main-card shadow-lg bg-white">
+                            <div class="row g-0">
+                                <div
+                                    class="col-md-4 d-flex flex-column align-items-center justify-content-center border-end bg-light p-4 rounded-start">
+                                    <div class="profile-img-container shadow">
+                                        <img src="/img/bgpink.svg" alt="Profile" class="img-fluid">
+                                    </div>
+                                    <h4 class="mt-3 fw-bold">
+                                        <%= data.first_name %>
+                                            <%= data.last_name %>
+                                    </h4>
+                                    <p class="text-muted small text-uppercase">Teacher ID: <%= data.teacher_code %>
+                                    </p>
+                                </div>
+
+                                <div class="col-md-8 p-5">
+                                    <h2 class="mb-4 fw-bold text-primary">แก้ไขข้อมูลอาจารย์</h2>
+                                    <form action="/admin/man/changeTea" method="get">
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="first" class="form-label">ชื่อ</label>
+                                                <input type="text" class="form-control" name="first" id="first"
+                                                    value="<%= data.first_name %>" required>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="last" class="form-label">นามสกุล</label>
+                                                <input type="text" class="form-control" name="last" id="last"
+                                                    value="<%= data.last_name %>" required>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="gender" class="form-label text-muted small">เพศ
+                                                    (ล็อค)</label>
+                                                <input type="text" class="form-control bg-light" name="gender"
+                                                    id="gender" value="<%= data.gender %>" readonly>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="DOB" class="form-label text-muted small">วันเกิด
+                                                    (ล็อค)</label>
+                                                <input type="text" class="form-control bg-light" name="DOB" id="DOB"
+                                                    value="<%= data.birth_date %>" readonly>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="tel" class="form-label">เบอร์โทรศัพท์</label>
+                                                <input type="tel" class="form-control border-primary-subtle" name="tel"
+                                                    id="tel" value="<%= data.phone %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="ID" class="form-label text-muted small">รหัสประจำตัว
+                                                    (ล็อค)</label>
+                                                <input type="text" class="form-control bg-light" name="ID" id="ID"
+                                                    value="<%= data.teacher_code %>" readonly>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="email" class="form-label text-muted small">อีเมล (ล็อค)</label>
+                                            <input type="email" class="form-control bg-light" name="email" id="email"
+                                                value="<%= data.email %>" readonly>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="edLev" class="form-label">วุฒิการศึกษา</label>
+                                                <input type="text" class="form-control" name="edLev" id="edLev"
+                                                    value="<%= data.education_level %>">
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label for="status"
+                                                    class="form-label text-primary">สถานะการทำงาน</label>
+                                                <select id="status" name="status"
+                                                    class="form-select border-primary shadow-sm">
+                                                    <option value="1" <%=data.teacher_status==1 ? 'selected' : '' %>
+                                                        >ยังคงอยู่ในโรงเรียน</option>
+                                                    <option value="0" <%=data.teacher_status==0 ? 'selected' : '' %>
+                                                        >ออกจากโรงเรียนไปแล้ว</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="row justify-content-center">
+                                            <div class="col-md-8 mb-4">
+                                                <input type="submit" class="btn btn-primary px-5"
+                                                    value="บันทึกการเปลี่ยนแปลงข้อมูล">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="gender" class="form-label text-muted small">เพศ (ล็อค)</label>
-                            <input type="text" class="form-control bg-light" name="gender" id="gender" value="<%= data.gender %>" readonly>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="DOB" class="form-label text-muted small">วันเกิด (ล็อค)</label>
-                            <input type="text" class="form-control bg-light" name="DOB" id="DOB" value="<%= data.birth_date %>" readonly>
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="tel" class="form-label">เบอร์โทรศัพท์</label>
-                            <input type="tel" class="form-control border-primary-subtle" name="tel" id="tel" value="<%= data.phone %>">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="ID" class="form-label text-muted small">รหัสประจำตัว (ล็อค)</label>
-                            <input type="text" class="form-control bg-light" name="ID" id="ID" value="<%= data.teacher_code %>" readonly>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="email" class="form-label text-muted small">อีเมล (ล็อค)</label>
-                        <input type="email" class="form-control bg-light" name="email" id="email" value="<%= data.email %>" readonly>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label for="edLev" class="form-label">วุฒิการศึกษา</label>
-                            <input type="text" class="form-control" name="edLev" id="edLev" value="<%= data.education_level %>">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label for="status" class="form-label text-primary">สถานะการทำงาน</label>
-                            <select id="status" name="status" class="form-select border-primary shadow-sm">
-                                <option value="1" <%= data.teacher_status == 1 ? 'selected' : '' %>>ยังคงอยู่ในโรงเรียน</option>
-                                <option value="0" <%= data.teacher_status == 0 ? 'selected' : '' %>>ออกจากโรงเรียนไปแล้ว</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="row justify-content-center">
-                <div class="col-md-8 mb-4">
-                    <input type="submit" class="btn btn-primary px-5" value="บันทึกการเปลี่ยนแปลงข้อมูล">
                 </div>
             </div>
-                </form>
-            </div>
-        </div>
     </div>
-</div>
+
 </body>
 
 </html>
