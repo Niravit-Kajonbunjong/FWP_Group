@@ -61,4 +61,24 @@ const regis_auth = async(req, res, next) => {
     }
 }
 
+<<<<<<< Updated upstream
 module.exports = { teacher_auth, student_auth, admin_auth, regis_auth };
+=======
+// Middleware สำหรับหน้าที่เข้าได้หลาย Role
+const general_auth = async(req, res, next) => {
+    try {
+        const token = req.cookies.accessToken;
+        if (!token) {
+            return res.redirect('/');
+        }
+        const decode = jwt.verify(token, kate);
+        req.user = decode;
+        next();
+    } catch (error) {
+        console.log(error);
+        return res.redirect('/');
+    }
+}
+
+module.exports = { teacher_auth, student_auth, admin_auth, regis_auth, general_auth };
+>>>>>>> Stashed changes
