@@ -193,17 +193,16 @@ app.get("/teacher/grading/:section_id", teacher_auth, (req, res) => {
                g.assignment_score, g.midterm_score, g.final_score, g.grade_letter
         FROM Student s
         JOIN User u ON s.user_id = u.user_id
+        JOIN Homeroom h ON s.homeroom_id = h.homeroom_id
         JOIN CourseSection cs ON cs.section_id = ?
         JOIN Course c ON cs.course_id = c.course_id
         LEFT JOIN Grade g ON s.student_id = g.student_id AND g.section_id = cs.section_id
         WHERE (
-            (c.course_type = 'CORE' AND (
-                (c.course_code LIKE '%10_' AND s.student_code LIKE '68%') OR 
-                (c.course_code LIKE '%20_' AND s.student_code LIKE '67%') OR 
-                (c.course_code LIKE '%30_' AND s.student_code LIKE '66%')    
-            ))
+            (c.course_type = 'CORE' AND h.grade_level = c.grade_level)
             OR 
-            (c.course_type IN ('TRACK', 'ELECTIVE', 'CLUB') AND s.student_id IN (
+            (c.course_type = 'TRACK' AND h.grade_level = c.grade_level AND h.track_id = c.track_id)
+            OR 
+            (c.course_type IN ('ELECTIVE', 'CLUB') AND s.student_id IN (
                 SELECT student_id FROM Enrollment WHERE section_id = cs.section_id
             ))
         )
