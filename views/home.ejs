@@ -9,15 +9,6 @@
     <link rel="stylesheet" href="/css/index.css">
 </head>
 <body>
-<<<<<<< Updated upstream
-                <% if (user.role === 'teacher') { %>
-                    <%- include('teacherHome') %> 
-                <% } else if (user.role === 'student') { %>
-                    <%- include('studentHome') %> <% } else if (user.role === 'registration') { %>
-                    <%- include('regisHome') %> <% } else { %>
-                    <div class="alert alert-danger w-100 text-center">ไม่พบสิทธิ์การใช้งาน</div>
-                <% } %>
-=======
     <% if (user.role === 'teacher') { %>
         <%- include('teacherHome') %> 
     <% } else if (user.role === 'student') { %>
@@ -33,6 +24,5 @@
             </div>
         </div>
     <% } %>
->>>>>>> Stashed changes
 </body>
 </html>

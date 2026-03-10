@@ -59,17 +59,12 @@ body {
         <% } %>
             
         <% if (user.role === 'admin') { %>
-<<<<<<< Updated upstream
-            <a href="/admin/users" class="menu-item">ข้อมูลนักเรียน/อาจารย์</a>
-            <a href="/admin/accounts" class="menu-item">จัดการบัญชี</a>
-=======
             <a href="/admin/man/student" class="menu-item <%= locals.active === 'student' ? 'active' : '' %>">
                 นักเรียน
             </a>
             <a href="/admin/man/teacher" class="menu-item <%= locals.active === 'teacher' ? 'active' : '' %>">
                 อาจารย์
             </a>
->>>>>>> Stashed changes
         <% } %>
     </div>
 </div>

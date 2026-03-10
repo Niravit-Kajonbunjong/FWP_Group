@@ -61,9 +61,6 @@ const regis_auth = async(req, res, next) => {
     }
 }
 
-<<<<<<< Updated upstream
-module.exports = { teacher_auth, student_auth, admin_auth, regis_auth };
-=======
 // Middleware สำหรับหน้าที่เข้าได้หลาย Role
 const general_auth = async(req, res, next) => {
     try {
@@ -81,4 +78,3 @@ const general_auth = async(req, res, next) => {
 }
 
 module.exports = { teacher_auth, student_auth, admin_auth, regis_auth, general_auth };
->>>>>>> Stashed changes
