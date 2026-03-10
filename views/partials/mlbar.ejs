@@ -4,11 +4,9 @@ body {
 }
 
 .sidebar-container {
-    width: 280px;
-    height: 100vh;
+    /* ปรับให้เข้ากับโครงสร้าง Layout ใหม่ */
+    height: 100%;
     background-color: #F4F7FC;
-    border-right: 1px solid #E0E0E0;
-    position: fixed;
 }
 
 .menu-list {
@@ -33,29 +31,38 @@ body {
     padding-left: 30px;
 }
 
+/* เพิ่มสไตล์เล็กๆ สำหรับเมนูที่ถูกเลือก (Active) เพื่อให้รู้ว่าอยู่หน้าไหน */
+.menu-item.active {
+    background-color: #E9EFFF;
+    color: #0D6EFD;
+    border-right: 4px solid #0D6EFD;
+}
+
 .menu-item:last-child {
     border-bottom: none;
 }
 </style>
+
 <div class="sidebar-container">
     <div class="sidebar-header">
-        </div>
+    </div>
     
     <div class="menu-list">
         <% if (user.role === 'teacher') { %>
-            <a href="/teacher/schedule" class="menu-item">ตารางสอน</a>
-            <a href="/teacher/grading" class="menu-item">กรอกคะแนน</a>
+            <a href="/teacher/schedule" class="menu-item <%= locals.active === 'schedule' ? 'active' : '' %>">ตารางสอน</a>
+            <a href="/teacher/grading" class="menu-item <%= locals.active === 'grading' ? 'active' : '' %>">กรอกคะแนน</a>
         <% } %>
 
         <% if (user.role === 'student') { %>
-            <a href="/student/grades" class="menu-item">ผลการเรียน</a>
-            <a href="/student/timetable" class="menu-item">ตารางเรียน</a>
-            <a href="/student/enroll" class="menu-item">ลงทะเบียนเรียน</a>
+            <a href="/student/home" class="menu-item <%= locals.active === 'home' ? 'active' : '' %>">ข้อมูลส่วนตัว</a>
+            <a href="/student/grades" class="menu-item <%= locals.active === 'grades' ? 'active' : '' %>">ผลการเรียน</a>
+            <a href="/student/timetable" class="menu-item <%= locals.active === 'timetable' ? 'active' : '' %>">ตารางเรียน</a>
+            <a href="/student/enroll" class="menu-item <%= locals.active === 'enroll' ? 'active' : '' %>">ลงทะเบียนเรียน</a>
         <% } %>
 
         <% if (user.role === 'registration') { %>
-            <a href="/regis/enrollment" class="menu-item">การลงทะเบียน</a>
-            <a href="/regis/curriculum" class="menu-item">วิชาและหลักสูตร</a>
+            <a href="/regis/enrollment" class="menu-item <%= locals.active === 'enrollment' ? 'active' : '' %>">การลงทะเบียน</a>
+            <a href="/regis/curriculum" class="menu-item <%= locals.active === 'curriculum' ? 'active' : '' %>">วิชาและหลักสูตร</a>
         <% } %>
             
         <% if (user.role === 'admin') { %>
