@@ -373,12 +373,26 @@ app.get("/regis/edit/:id", regis_auth, (req, res) => {
 });
 
 app.post("/regis/update-subject/:id", regis_auth, (req, res) => {
-    const { course_name, credit_hours, description, teacher_id, schedule_day, start_time, end_time, room, max_students } = req.body;
+    // เอา description ออกจากการดึงค่า
+    const { course_name, credit_hours, teacher_id, schedule_day, start_time, end_time, room, max_students } = req.body;
+    
     db.serialize(() => {
-        db.run("UPDATE Course SET course_name = ?, credit_hours = ?, description = ? WHERE course_id = ?", [course_name, credit_hours, description, req.params.id]);
-        db.run("UPDATE CourseSection SET teacher_id = ?, schedule_day = ?, start_time = ?, end_time = ?, room = ?, max_students = ? WHERE course_id = ?", [teacher_id, schedule_day, start_time, end_time, room, max_students, req.params.id], () => {
-            res.redirect("/regis/curriculum");
-        });
+        // เอา description = ? ออกจากคำสั่ง SQL
+        db.run("UPDATE Course SET course_name = ?, credit_hours = ? WHERE course_id = ?", 
+            [course_name, credit_hours, req.params.id], 
+            (err) => {
+                if (err) console.error("Error updating Course:", err.message);
+            }
+        );
+        
+        db.run("UPDATE CourseSection SET teacher_id = ?, schedule_day = ?, start_time = ?, end_time = ?, room = ?, max_students = ? WHERE course_id = ?", 
+            [teacher_id, schedule_day, start_time, end_time, room, max_students, req.params.id], 
+            (err) => {
+                if (err) console.error("Error updating CourseSection:", err.message);
+                
+                res.redirect("/regis/curriculum");
+            }
+        );
     });
 });
 
@@ -458,12 +472,13 @@ app.get("/admin/man/student", admin_auth, (req, res) => {
     });
 });
 
-// หน้าฟอร์มเพิ่มนักเรียน
 app.get("/admin/man/addStu", admin_auth, (req, res) => {
-    res.render("addInStu", { user: req.admin, active: 'student' });
+    db.get("SELECT * FROM User WHERE user_id = ?", [req.admin.id], (err, adminUser) => {
+        if (err || !adminUser) return res.status(500).send("ไม่พบข้อมูลแอดมิน");
+        res.render("addInStu", { user: adminUser, active: 'student' });
+    });
 });
 
-// บันทึกข้อมูลนักเรียนใหม่ (เปลี่ยนเป็น POST)
 app.post("/admin/man/saveStu", admin_auth, (req, res) => {
     const { first, last, gender, DOB, tel, ID, email, password, room } = req.body;
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -495,11 +510,9 @@ app.post("/admin/man/saveStu", admin_auth, (req, res) => {
     });
 });
 
-// ลบข้อมูลนักเรียน
 app.get("/admin/man/delStu/:id", admin_auth, (req, res) => {
     const user_id = req.params.id;
     db.serialize(() => {
-        // ลบตารางลูกก่อนเสมอ
         db.run(`DELETE FROM Student WHERE user_id = ?`, [user_id]);
         db.run(`DELETE FROM User WHERE user_id = ?`, [user_id], (err) => {
             if (err) console.error(err.message);
@@ -508,7 +521,6 @@ app.get("/admin/man/delStu/:id", admin_auth, (req, res) => {
     });
 });
 
-// --- ส่วนการจัดการอาจารย์ (Teacher Management) ---
 app.get("/admin/man/teacher", admin_auth, (req, res) => {
     const adminId = req.admin.id;
 
@@ -528,12 +540,13 @@ app.get("/admin/man/teacher", admin_auth, (req, res) => {
     });
 });
 
-// หน้าฟอร์มเพิ่มอาจารย์
 app.get("/admin/man/addTea", admin_auth, (req, res) => {
-    res.render("addInTea", { user: req.admin });
+    db.get("SELECT * FROM User WHERE user_id = ?", [req.admin.id], (err, adminUser) => {
+        if (err || !adminUser) return res.status(500).send("ไม่พบข้อมูลแอดมิน");
+        res.render("addInTea", { user: adminUser, active: 'teacher' });
+    });
 });
 
-// บันทึกข้อมูลอาจารย์ใหม่ (เปลี่ยนเป็น POST)
 app.post("/admin/man/saveTea", admin_auth, (req, res) => {
     const { first, last, gender, DOB, tel, ID, email, password, edLev } = req.body;
     const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -563,7 +576,6 @@ app.post("/admin/man/saveTea", admin_auth, (req, res) => {
     });
 });
 
-// แก้ไขข้อมูลอาจารย์ (Update)
 app.post("/admin/man/changeTea", admin_auth, (req, res) => {
     const { first, last, tel, ID, email, edLev, status } = req.body;
     const isActive = (status === 'active' || status === '1') ? 1 : 0;
@@ -582,12 +594,16 @@ app.get("/admin/man/editStu/:id", admin_auth, (req, res) => {
     let user_id = req.params.id;
     const sql = `SELECT * FROM User JOIN Student ON User.user_id = Student.user_id WHERE Student.user_id = ?;`;
 
-    db.get(sql, [user_id], (err, row) => {
-        if (err) console.error(err.message);
-        res.render("editInStu", { 
-            data: row, 
-            user: req.admin,
-            active: 'student'
+    db.get("SELECT * FROM User WHERE user_id = ?", [req.admin.id], (err, adminUser) => {
+        if (err || !adminUser) return res.status(500).send("ไม่พบข้อมูลแอดมิน");
+
+        db.get(sql, [user_id], (err, row) => {
+            if (err) console.error(err.message);
+            res.render("editInStu", { 
+                data: row, 
+                user: adminUser,
+                active: 'student'
+            });
         });
     });
 });
@@ -614,19 +630,19 @@ app.get("/admin/man/editTea/:id", admin_auth, (req, res) => {
     let user_id = req.params.id;
     const sql = `SELECT * FROM User JOIN Teacher ON User.user_id = Teacher.user_id WHERE Teacher.user_id = ?;`;
 
-    db.get(sql, [user_id], (err, row) => {
-        if (err) console.error(err.message);
-        res.render("editInTea", { 
-            data: row, 
-            user: req.admin, 
-            active: 'teacher' 
+    db.get("SELECT * FROM User WHERE user_id = ?", [req.admin.id], (err, adminUser) => {
+        if (err || !adminUser) return res.status(500).send("ไม่พบข้อมูลแอดมิน");
+
+        db.get(sql, [user_id], (err, row) => {
+            if (err) console.error(err.message);
+            res.render("editInTea", { 
+                data: row, 
+                user: adminUser, 
+                active: 'teacher' 
+            });
         });
     });
 });
-
-// ==========================================
-// ส่วนของนักเรียน (Student Module)
-// ==========================================
 
 // 1. หน้าข้อมูลส่วนตัวนักเรียน
 app.get("/student/home", student_auth, (req, res) => {
