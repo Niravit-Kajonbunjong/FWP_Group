@@ -22,6 +22,7 @@
         
         .student-avatar { width: 40px; height: 40px; background: #e8e6ff; color: #4A3AFF; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: bold; font-size: 1.1rem; }
         
+        /* กลับมาใช้ CSS เดิมของคุณ */
         .status-select { border: none; border-radius: 20px; padding: 6px 12px; font-weight: 600; font-size: 0.85rem; cursor: pointer; outline: none; appearance: none; -webkit-appearance: none; text-align: center; width: 140px; transition: 0.2s; }
         .status-pending { background-color: #fff7ed; color: #9a3412; border: 1px solid #ffedd5; } 
         .status-approved { background-color: #f0fdf4; color: #166534; border: 1px solid #dcfce7; } 
@@ -101,6 +102,7 @@
 
                                         <td class="text-center">
                                             <div class="d-flex justify-content-center gap-2">
+                                                
                                                 <% if(reqItem.status !== 'approved') { %>
                                                     <button onclick="confirmSubmit('<%= reqItem.enrollment_id %>', 'approved')" 
                                                             class="btn-approve shadow-sm">
@@ -136,6 +138,7 @@
     </div>
 
     <script>
+        // สคริปต์ทำงานกับ Dropdown และปุ่มอนุมัติเหมือนเดิมเป๊ะๆ
         function confirmChange(id, status) {
             const statusMap = { 'approved': 'อนุมัติ', 'pending': 'กำลังดำเนินการ', 'rejected': 'ปฏิเสธ' };
             if (confirm(`คุณต้องการเปลี่ยนสถานะเป็น "${statusMap[status]}" ใช่หรือไม่?`)) {

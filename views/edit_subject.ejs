@@ -42,7 +42,7 @@
                 <div class="container-fluid">
                     <div class="row justify-content-center">
                         <div class="col-lg-11">
-                            
+                             
                             <a href="/regis/curriculum" class="text-decoration-none text-muted small mb-3 d-inline-block">
                                 <i class="fa-solid fa-arrow-left me-1"></i> กลับไปหน้ารายวิชา
                             </a>
@@ -51,15 +51,20 @@
                                 <div class="header-purple text-center">
                                     <h4 class="fw-bold m-0"><i class="fa-solid fa-pen-to-square me-2"></i>แก้ไขข้อมูลรายวิชา</h4>
                                     <p class="m-0 mt-2 opacity-75" style="font-size: 0.9rem;">
-                                        รหัสวิชา: <%= subject.course_code %> | รหัสอ้างอิง: <%= subject.course_id %>
+                                        รหัสวิชา: <%= subject.course_code %> | รหัสอ้างอิง: <%= typeof courseId !== 'undefined' ? courseId : subject.course_id %>
                                     </p>
                                 </div>
 
                                 <div class="card-body p-4 p-md-5">
-                                    <form action="/regis/update-subject/<%= subject.course_id %>" method="POST">
+                                    <form action="/regis/update-subject/<%= typeof courseId !== 'undefined' ? courseId : subject.course_id %>" method="POST">
                                         <div class="row g-4">
-                                            
-                                            <div class="col-md-9">
+                                             
+                                            <div class="col-md-3">
+                                                <label class="form-label">รหัสวิชา</label>
+                                                <input type="text" name="course_code" class="form-control" value="<%= subject.course_code %>" required>
+                                            </div>
+
+                                            <div class="col-md-6">
                                                 <label class="form-label">ชื่อรายวิชา</label>
                                                 <input type="text" name="course_name" class="form-control" value="<%= subject.course_name %>" required>
                                             </div>
@@ -69,6 +74,46 @@
                                                 <input type="number" name="credit_hours" class="form-control" value="<%= subject.credit_hours %>" min="1" max="10">
                                             </div>
 
+<div class="col-md-3">
+    <label class="form-label text-success"><i class="fa-solid fa-book me-1"></i> ประเภทวิชา (Type)</label>
+    <select name="course_type" class="form-select" required>
+        <option value="" <%= !subject.course_type ? 'selected' : '' %> disabled>-- เลือกประเภท --</option>
+        <option value="CORE" <%= subject.course_type === 'CORE' ? 'selected' : '' %>>วิชาบังคับ (CORE)</option>
+        <option value="TRACK" <%= subject.course_type === 'TRACK' ? 'selected' : '' %>>วิชาสายการเรียน (TRACK)</option>
+        <option value="ELECTIVE" <%= subject.course_type === 'ELECTIVE' ? 'selected' : '' %>>วิชาเลือก (ELECTIVE)</option>
+        <option value="CLUB" <%= subject.course_type === 'CLUB' ? 'selected' : '' %>>ชมรม (CLUB)</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label text-success"><i class="fa-solid fa-layer-group me-1"></i> ระดับชั้น (Grade)</label>
+    <select name="grade_level" class="form-select">
+        <option value="" <%= !subject.grade_level ? 'selected' : '' %>>-- ไม่ระบุ --</option>
+        <option value="4" <%= subject.grade_level == 4 ? 'selected' : '' %>>มัธยมศึกษาปีที่ 4</option>
+        <option value="5" <%= subject.grade_level == 5 ? 'selected' : '' %>>มัธยมศึกษาปีที่ 5</option>
+        <option value="6" <%= subject.grade_level == 6 ? 'selected' : '' %>>มัธยมศึกษาปีที่ 6</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label text-success"><i class="fa-solid fa-list-ol me-1"></i> ภาคเรียน (Term)</label>
+    <select name="term_no" class="form-select">
+        <option value="" <%= !subject.term_no ? 'selected' : '' %>>-- ไม่ระบุ --</option>
+        <option value="1" <%= subject.term_no == 1 ? 'selected' : '' %>>ภาคเรียนที่ 1</option>
+        <option value="2" <%= subject.term_no == 2 ? 'selected' : '' %>>ภาคเรียนที่ 2</option>
+    </select>
+</div>
+
+<div class="col-md-3">
+    <label class="form-label text-success"><i class="fa-solid fa-code-branch me-1"></i> สายการเรียน (Track)</label>
+    <select name="track_id" class="form-select">
+        <option value="" <%= !subject.track_id ? 'selected' : '' %>>-- ไม่ระบุ --</option>
+        <option value="1" <%= subject.track_id == 1 ? 'selected' : '' %>>วิทย์-คณิต (1)</option>
+        <option value="2" <%= subject.track_id == 2 ? 'selected' : '' %>>ศิลป์-คำนวณ (2)</option>
+        <option value="3" <%= subject.track_id == 3 ? 'selected' : '' %>>ศิลป์-ภาษา (3)</option>
+        <option value="4" <%= subject.track_id == 4 ? 'selected' : '' %>>ทั่วไป/อื่นๆ (4)</option>
+    </select>
+</div>
                                             <div class="col-md-12">
                                                 <label class="form-label">อาจารย์ผู้สอนประจำวิชา</label>
                                                 <select name="teacher_id" class="form-select" required>
@@ -110,11 +155,6 @@
                                             <div class="col-md-6">
                                                 <label class="form-label text-primary"><i class="fa-solid fa-users me-1"></i> จำนวนที่รับสมัครสูงสุด</label>
                                                 <input type="number" name="max_students" class="form-control" value="<%= subject.max_students %>">
-                                            </div>
-
-                                            <div class="col-md-12">
-                                                <label class="form-label">คำอธิบายรายวิชา / รายละเอียดเพิ่มเติม</label>
-                                                <textarea name="description" class="form-control" rows="4"><%= subject.description %></textarea>
                                             </div>
 
                                             <div class="col-12 mt-5">

@@ -328,26 +328,72 @@ app.get("/regis/curriculum", regis_auth, (req, res) => {
 });
 
 app.post("/regis/add-subject", regis_auth, (req, res) => {
-    const { course_code, subject_name, credits, course_type, room } = req.body;
+    const { course_code, subject_name, credits, course_type, room, grade_level, term_no, track_id } = req.body;
     
-    db.get("SELECT teacher_id FROM Teacher LIMIT 1", (err, teacher) => {
-        db.get("SELECT semester_id FROM Semester ORDER BY semester_id DESC LIMIT 1", (err, semester) => {
+    // ดึงเทอมล่าสุดเพื่อมาเช็คเงื่อนไข term_no
+    db.get("SELECT semester_id, term FROM Semester ORDER BY semester_id DESC LIMIT 1", (err, semester) => {
+        db.get("SELECT teacher_id FROM Teacher LIMIT 1", (err, teacher) => {
             
             db.serialize(() => {
                 db.run("BEGIN TRANSACTION");
                 
-                const sqlCourse = `INSERT INTO Course (course_code, course_name, credit_hours, course_type) VALUES (?, ?, ?, ?)`;
-                db.run(sqlCourse, [course_code, subject_name, credits, course_type], function(err) {
-                    if (err) { db.run("ROLLBACK"); return res.status(500).send(err.message); }
+                const sqlCourse = `INSERT INTO Course (course_code, course_name, credit_hours, course_type, grade_level, term_no, track_id) 
+                                   VALUES (?, ?, ?, ?, ?, ?, ?)`;
+                db.run(sqlCourse, [course_code, subject_name, credits, course_type, grade_level || null, term_no || null, track_id || null], function(err) {
+                    if (err) { db.run("ROLLBACK"); return res.status(500).send("Error Insert Course: " + err.message); }
                     
                     const newCourseId = this.lastID;
-                    const sqlSection = `INSERT INTO CourseSection (course_id, teacher_id, semester_id, room, schedule_day, start_time, end_time, max_students) 
-                                       VALUES (?, ?, ?, ?, 'จันทร์', '08:00', '10:00', 40)`;
                     
-                    db.run(sqlSection, [newCourseId, teacher.teacher_id, semester.semester_id, room], (err) => {
-                        if (err) { db.run("ROLLBACK"); return res.status(500).send(err.message); }
-                        db.run("COMMIT");
-                        res.redirect("/regis/curriculum");
+                    const sqlSection = `INSERT INTO CourseSection (course_id, teacher_id, semester_id, room, schedule_day, start_time, end_time, max_students) 
+                                        VALUES (?, ?, ?, ?, 'จันทร์', '08:00', '10:00', 40)`;
+                    
+                    db.run(sqlSection, [newCourseId, teacher.teacher_id, semester.semester_id, room], function(err) {
+                        if (err) { db.run("ROLLBACK"); return res.status(500).send("Error Insert Section: " + err.message); }
+                        
+                        const newSectionId = this.lastID;
+
+                        // 🌟 เช็คว่าเป็น CORE/TRACK และเทอมที่สอน (term_no) ตรงกับเทอมของ Semester (semester.term)
+                        if ((course_type === 'CORE' || course_type === 'TRACK') && parseInt(term_no) === parseInt(semester.term)) {
+                            
+                            let studentQuery = `
+                                SELECT s.student_id 
+                                FROM Student s 
+                                JOIN Homeroom h ON s.homeroom_id = h.homeroom_id 
+                                WHERE h.grade_level = ?
+                            `;
+                            let queryParams = [grade_level];
+
+                            if (course_type === 'TRACK') {
+                                studentQuery += ` AND h.track_id = ?`;
+                                queryParams.push(track_id);
+                            }
+
+                            db.all(studentQuery, queryParams, (err, students) => {
+                                if (err) { db.run("ROLLBACK"); return res.status(500).send("Error find students: " + err.message); }
+
+                                if (students && students.length > 0) {
+                                    const placeholders = students.map(() => '(?, ?, ?, 0, 0, 0, NULL, CURRENT_TIMESTAMP)').join(', ');
+                                    const insertGradeSql = `INSERT OR IGNORE INTO Grade (student_id, section_id, entered_by, assignment_score, midterm_score, final_score, grade_letter, entered_at) VALUES ${placeholders}`;
+                                    
+                                    let gradeParams = [];
+                                    students.forEach(st => {
+                                        gradeParams.push(st.student_id, newSectionId, req.registration.id);
+                                    });
+
+                                    db.run(insertGradeSql, gradeParams, (err) => {
+                                        if (err) { db.run("ROLLBACK"); return res.status(500).send("Error insert grades: " + err.message); }
+                                        db.run("COMMIT");
+                                        res.redirect("/regis/curriculum");
+                                    });
+                                } else {
+                                    db.run("COMMIT"); 
+                                    res.redirect("/regis/curriculum");
+                                }
+                            });
+                        } else {
+                            db.run("COMMIT");
+                            res.redirect("/regis/curriculum");
+                        }
                     });
                 });
             });
@@ -355,31 +401,80 @@ app.post("/regis/add-subject", regis_auth, (req, res) => {
     });
 });
 
+app.post("/regis/update-status/:id", regis_auth, (req, res) => {
+    const { status } = req.body;
+    const enrollmentId = req.params.id;
+    const adminId = req.registration.id; 
+    const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' });
+
+    db.serialize(() => {
+        db.run("BEGIN TRANSACTION");
+
+        // อัปเดตสถานะในตาราง ENROLLMENT
+        db.run("UPDATE ENROLLMENT SET status = ?, approved_by = ?, approved_at = ? WHERE enrollment_id = ?", 
+            [status, adminId, now, enrollmentId], (err) => {
+            
+            if (err) { db.run("ROLLBACK"); return res.status(500).send(err.message); }
+            
+            // ถ้าอนุมัติสำเร็จ ให้เอาเข้าตาราง Grade
+            if (status === 'approved') {
+                db.get("SELECT student_id, section_id FROM ENROLLMENT WHERE enrollment_id = ?", [enrollmentId], (err, row) => {
+                    if (err || !row) { db.run("ROLLBACK"); return res.status(500).send("Enrollment not found"); }
+
+                    const insertGradeSql = `
+                        INSERT INTO Grade (student_id, section_id, entered_by, assignment_score, midterm_score, final_score, grade_letter, entered_at)
+                        SELECT ?, ?, ?, 0, 0, 0, NULL, CURRENT_TIMESTAMP
+                        WHERE NOT EXISTS (
+                            SELECT 1 FROM Grade WHERE student_id = ? AND section_id = ?
+                        )
+                    `;
+
+                    db.run(insertGradeSql, [row.student_id, row.section_id, adminId, row.student_id, row.section_id], (err) => {
+                        if (err) { db.run("ROLLBACK"); return res.status(500).send("Error adding to grade: " + err.message); }
+                        db.run("COMMIT");
+                        res.redirect("/regis/enrollment"); 
+                    });
+                });
+            } else {
+                db.run("COMMIT");
+                res.redirect("/regis/enrollment");
+            }
+        });
+    });
+});
+
+// 1. หน้าแสดงฟอร์มแก้ไข (เพิ่มการส่ง courseId ไปตรงๆ กันพลาด)
 app.get("/regis/edit/:id", regis_auth, (req, res) => {
     const userData = req.registration;
-    const courseId = req.params.id;
+    const courseId = req.params.id; // ดึง ID จาก URL
+    
     db.get(`SELECT c.*, cs.room, cs.schedule_day, cs.start_time, cs.end_time, cs.max_students, cs.teacher_id 
             FROM Course c 
             LEFT JOIN CourseSection cs ON c.course_id = cs.course_id 
             WHERE c.course_id = ? LIMIT 1`, [courseId], (err, subject) => {
+                
         db.get("SELECT *, profile_image AS avatar FROM User WHERE user_id = ?", [userData.id], (err, user) => {
             db.all("SELECT t.teacher_id, u.first_name, u.last_name FROM Teacher t JOIN User u ON t.user_id = u.user_id", (err, teachers) => {
                 res.render("edit_subject", { 
-                    user: user, subject: subject || {}, teachers: teachers || []
+                    user: user, 
+                    subject: subject || {}, 
+                    teachers: teachers || [],
+                    courseId: courseId // 🌟 ส่ง ID ไปให้ EJS ตรงๆ เพื่อกันบั๊ก
                 });
             });
         });
     });
 });
 
+// 2. ฟังก์ชันรับค่าไปบันทึก (อัปเดตให้เซฟ 3 ค่าใหม่ลงตาราง Course ด้วย)
 app.post("/regis/update-subject/:id", regis_auth, (req, res) => {
-    // เอา description ออกจากการดึงค่า
-    const { course_name, credit_hours, teacher_id, schedule_day, start_time, end_time, room, max_students } = req.body;
+    // 🌟 รับค่า course_type เพิ่มเข้ามา
+    const { course_code, course_name, credit_hours, course_type, teacher_id, schedule_day, start_time, end_time, room, max_students, grade_level, term_no, track_id } = req.body;
     
     db.serialize(() => {
-        // เอา description = ? ออกจากคำสั่ง SQL
-        db.run("UPDATE Course SET course_name = ?, credit_hours = ? WHERE course_id = ?", 
-            [course_name, credit_hours, req.params.id], 
+        // 🌟 อัปเดต course_type ลงในตาราง Course
+        db.run("UPDATE Course SET course_code = ?, course_name = ?, credit_hours = ?, course_type = ?, grade_level = ?, term_no = ?, track_id = ? WHERE course_id = ?", 
+            [course_code, course_name, credit_hours, course_type, grade_level || null, term_no || null, track_id || null, req.params.id], 
             (err) => {
                 if (err) console.error("Error updating Course:", err.message);
             }
@@ -390,6 +485,7 @@ app.post("/regis/update-subject/:id", regis_auth, (req, res) => {
             (err) => {
                 if (err) console.error("Error updating CourseSection:", err.message);
                 
+                // อัปเดตเสร็จแล้วเด้งกลับหน้าหลักของรายวิชา
                 res.redirect("/regis/curriculum");
             }
         );
@@ -420,17 +516,27 @@ app.get("/regis/enrollment", regis_auth, (req, res) => {
     });
 });
 
-app.post("/regis/update-status/:id", regis_auth, (req, res) => {
-    const { status } = req.body;
+app.post("/regis/update-subject/:id", regis_auth, (req, res) => {
+    // 🌟 รับค่า course_code มาด้วย
+    const { course_code, course_name, credit_hours, teacher_id, schedule_day, start_time, end_time, room, max_students, grade_level, term_no, track_id } = req.body;
     
-    const adminId = req.registration.id; 
-    
-    const now = new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Bangkok' });
-
-    db.run("UPDATE ENROLLMENT SET status = ?, approved_by = ?, approved_at = ? WHERE enrollment_id = ?", 
-        [status, adminId, now, req.params.id], (err) => {
-        if (err) return res.status(500).send(err.message);
-        res.redirect("/regis/enrollment");
+    db.serialize(() => {
+        // 🌟 เพิ่ม course_code = ? เข้าไปในคำสั่ง UPDATE
+        db.run("UPDATE Course SET course_code = ?, course_name = ?, credit_hours = ?, grade_level = ?, term_no = ?, track_id = ? WHERE course_id = ?", 
+            [course_code, course_name, credit_hours, grade_level || null, term_no || null, track_id || null, req.params.id], 
+            (err) => {
+                if (err) console.error("Error updating Course:", err.message);
+            }
+        );
+        
+        db.run("UPDATE CourseSection SET teacher_id = ?, schedule_day = ?, start_time = ?, end_time = ?, room = ?, max_students = ? WHERE course_id = ?", 
+            [teacher_id, schedule_day, start_time, end_time, room, max_students, req.params.id], 
+            (err) => {
+                if (err) console.error("Error updating CourseSection:", err.message);
+                
+                res.redirect("/regis/curriculum");
+            }
+        );
     });
 });
 
